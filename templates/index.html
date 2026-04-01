@@ -211,6 +211,23 @@
       font-size: 0.8rem;
     }
 
+    .shop-website-link {
+      display: inline-block;
+      color: #48cae4;
+      font-size: 0.88rem;
+      text-decoration: none;
+      padding: 6px 12px;
+      border: 1px solid #1e5070;
+      border-radius: 6px;
+      margin-top: 4px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .shop-website-link:hover {
+      background: #0d4f6b;
+      color: #caf0f8;
+    }
+
     footer {
       text-align: center;
       padding: 20px;
@@ -692,6 +709,8 @@
               <span class="rss-date">{{ item.published }}</span>
             </div>
             {% endfor %}
+          {% elif shop.website %}
+          <a class="shop-website-link" href="{{ shop.website }}" target="_blank" rel="noopener noreferrer">🔗 公式サイトを見る →</a>
           {% else %}
           <p class="rss-error">記事がありません。</p>
           {% endif %}
@@ -803,6 +822,8 @@
               <span class="rss-date">${item.published}</span>
             </div>`
           ).join('');
+        } else if (shop.website) {
+          content += `<a class="shop-website-link" href="${shop.website}" target="_blank" rel="noopener noreferrer">🔗 公式サイトを見る →</a>`;
         } else {
           content += '<p class="rss-error">記事がありません。</p>';
         }

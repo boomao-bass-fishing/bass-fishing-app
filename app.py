@@ -102,11 +102,29 @@ BOAT_SHOP_RSS = {
         {"name": "ともゑ釣り船", "url": "https://tomoeboat.jp/feed/"},
         {"name": "房総ロッヂ釣りセンター", "url": "https://bousou60.net/feed/"},
     ],
-    "七色ダム": [],
-    "池原ダム": [],
-    "野尻湖": [],
-    "高滝湖": [],
-    "河口湖": [],
+    "七色ダム": [
+        {"name": "バッシングロード", "url": None, "website": "https://bassingroad.com/"},
+    ],
+    "池原ダム": [
+        {"name": "トボトスロープ",         "url": None, "website": "http://www.toboto.or.jp/"},
+        {"name": "ワールドレコード池原",   "url": None, "website": "https://wrikehara.ocnk.me/"},
+        {"name": "池原・七色ガイドサービス","url": None, "website": "http://www.ikehara-nanairo-guid.com/"},
+    ],
+    "野尻湖": [
+        {"name": "野尻湖マリーナ", "url": None, "website": "https://www.nojiriko.jp/"},
+        {"name": "野尻湖Freee",   "url": None, "website": "https://nojiri-freee.com/"},
+        {"name": "花屋ボート",     "url": None, "website": "https://hanayaboat.com/"},
+        {"name": "坂本屋",         "url": None, "website": "http://www.sakamoto-ya.com/rentalboat/"},
+    ],
+    "高滝湖": [
+        {"name": "高滝湖観光企業組合", "url": None, "website": "https://www.takatakiko.jp/"},
+    ],
+    "河口湖": [
+        {"name": "ボートハウスさかなや", "url": None, "website": "https://sakanaya-boat.com/"},
+        {"name": "ボートハウスハワイ",   "url": None, "website": "http://www.kawaguchiko.ne.jp/~hawaii/"},
+        {"name": "レンタルボート 湖波",  "url": None, "website": "http://www.konamiboat.com/"},
+        {"name": "国友ボート",           "url": None, "website": "http://www.lcnet.jp/~tom-58/"},
+    ],
     "利根川": [],
     "荒川": [],
     "五三川": [],
@@ -162,7 +180,11 @@ def fetch_videos(query, max_results=6):
         return cached["data"] if cached else []
 
 
-def fetch_rss(shop_name, rss_url, max_items=5):
+def fetch_rss(shop_name, rss_url, website=None, max_items=5):
+    # RSSなし・ウェブサイトのみの場合
+    if not rss_url:
+        return {"name": shop_name, "items": [], "error": None, "website": website}
+
     now = time.time()
     cached = _rss_cache.get(rss_url)
     if cached and (now - cached["ts"]) < RSS_CACHE_TTL:
@@ -181,12 +203,12 @@ def fetch_rss(shop_name, rss_url, max_items=5):
                 "published": published,
                 "summary": entry.get("summary", ""),
             })
-        result = {"name": shop_name, "items": items, "error": None}
+        result = {"name": shop_name, "items": items, "error": None, "website": website}
         _rss_cache[rss_url] = {"data": result, "ts": now}
         return result
     except Exception as e:
         print(f"Error fetching RSS for '{shop_name}': {e}")
-        return cached["data"] if cached else {"name": shop_name, "items": [], "error": str(e)}
+        return cached["data"] if cached else {"name": shop_name, "items": [], "error": str(e), "website": website}
 
 
 def build_field_data():
@@ -198,7 +220,7 @@ def build_field_data():
 
         boat_shops = []
         for shop in BOAT_SHOP_RSS.get(field_name, []):
-            result = fetch_rss(shop["name"], shop["url"])
+            result = fetch_rss(shop["name"], shop.get("url"), shop.get("website"))
             boat_shops.append(result)
 
         field_data.append({
