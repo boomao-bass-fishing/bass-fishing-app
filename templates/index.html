@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>バス釣り釣果ダッシュボード</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: #0d1b2a;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a3a5c, #0d6b8a);
+      padding: 24px 32px;
+      text-align: center;
+      border-bottom: 3px solid #00b4d8;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      letter-spacing: 0.05em;
+    }
+
+    header p {
+      margin-top: 6px;
+      color: #90e0ef;
+      font-size: 0.9rem;
+    }
+
+    header nav {
+      margin-top: 12px;
+    }
+
+    header nav a {
+      color: #48cae4;
+      text-decoration: none;
+      font-size: 0.85rem;
+      border: 1px solid #48cae4;
+      border-radius: 20px;
+      padding: 4px 16px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    header nav a:hover {
+      background: #48cae4;
+      color: #0d1b2a;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    .field-section {
+      margin-bottom: 48px;
+    }
+
+    .field-title {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #00b4d8;
+      border-left: 5px solid #00b4d8;
+      padding-left: 12px;
+      margin-bottom: 16px;
+    }
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .video-card {
+      background: #1b2d3e;
+      border-radius: 10px;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: block;
+      border: 1px solid #263d52;
+    }
+
+    .video-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 180, 216, 0.3);
+      border-color: #00b4d8;
+    }
+
+    .video-card img {
+      width: 100%;
+      display: block;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+    }
+
+    .video-info {
+      padding: 12px 14px;
+    }
+
+    .video-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      line-height: 1.4;
+      color: #e0f4ff;
+      margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .video-meta {
+      font-size: 0.78rem;
+      color: #7eb8d4;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .video-channel {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .video-date {
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .no-videos {
+      color: #607d8b;
+      font-size: 0.9rem;
+      padding: 12px 0;
+    }
+
+    .boat-shops {
+      margin-top: 24px;
+    }
+
+    .boat-shop-title {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #48cae4;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .rss-shop {
+      background: #162535;
+      border: 1px solid #1e3a50;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+
+    .rss-shop-name {
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #90e0ef;
+      margin-bottom: 8px;
+    }
+
+    .rss-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      padding: 6px 0;
+      border-bottom: 1px solid #1e3a50;
+      font-size: 0.85rem;
+    }
+
+    .rss-item:last-child {
+      border-bottom: none;
+    }
+
+    .rss-item a {
+      color: #caf0f8;
+      text-decoration: none;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .rss-item a:hover {
+      color: #00b4d8;
+      text-decoration: underline;
+    }
+
+    .rss-date {
+      color: #5b93a8;
+      font-size: 0.78rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .rss-error {
+      color: #607d8b;
+      font-size: 0.8rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #3a6278;
+      font-size: 0.8rem;
+      border-top: 1px solid #1b2d3e;
+    }
+
+    /* 釣果投稿フォーム */
+    .catch-post-section {
+      background: #132233;
+      border: 1px solid #1e3a50;
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 40px;
+    }
+
+    .catch-post-section h2 {
+      font-size: 1.2rem;
+      color: #00b4d8;
+      border-left: 5px solid #00b4d8;
+      padding-left: 12px;
+      margin-bottom: 20px;
+    }
+
+    .catch-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+    }
+
+    .catch-form .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .catch-form .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .catch-form label {
+      font-size: 0.8rem;
+      color: #7eb8d4;
+      font-weight: 600;
+    }
+
+    .catch-form input,
+    .catch-form select,
+    .catch-form textarea {
+      background: #0d1b2a;
+      border: 1px solid #263d52;
+      border-radius: 6px;
+      color: #e0e0e0;
+      padding: 8px 10px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .catch-form input:focus,
+    .catch-form select:focus,
+    .catch-form textarea:focus {
+      border-color: #00b4d8;
+    }
+
+    .catch-form select option {
+      background: #0d1b2a;
+    }
+
+    .catch-form textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+
+    .catch-form .submit-wrap {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .btn-post {
+      background: linear-gradient(135deg, #0077b6, #00b4d8);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 28px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn-post:hover {
+      opacity: 0.85;
+    }
+
+    /* 釣果一覧 */
+    .catch-list-section {
+      margin-bottom: 48px;
+    }
+
+    .catch-list-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .catch-list-section h2 {
+      font-size: 1.2rem;
+      color: #00b4d8;
+      border-left: 5px solid #00b4d8;
+      padding-left: 12px;
+      margin-bottom: 0;
+    }
+
+    .catch-filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .catch-filters select {
+      background: #0d2f47;
+      color: #cde8f4;
+      border: 1px solid #1e5070;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .catch-filters select:focus {
+      outline: none;
+      border-color: #00b4d8;
+    }
+
+    .catch-table-wrap {
+      overflow-x: auto;
+    }
+
+    .catch-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    .catch-table th {
+      background: #1a3a5c;
+      color: #90e0ef;
+      padding: 10px 14px;
+      text-align: left;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+
+    .catch-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #1b2d3e;
+      color: #cde8f4;
+      vertical-align: top;
+    }
+
+    .catch-table tr:hover td {
+      background: #1b2d3e;
+    }
+
+    .catch-table .field-badge {
+      display: inline-block;
+      background: #0d4f6b;
+      color: #48cae4;
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+
+    .catch-empty {
+      color: #607d8b;
+      font-size: 0.9rem;
+      padding: 12px 0;
+    }
+
+    /* サービス紹介バナー */
+    .about-banner {
+      background: linear-gradient(135deg, #0d2f47, #0d3d57);
+      border: 1px solid #1e5070;
+      border-left: 5px solid #00b4d8;
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 36px;
+      line-height: 1.8;
+    }
+
+    .about-banner p {
+      color: #cde8f4;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+    }
+
+    .about-banner p:last-child {
+      margin-bottom: 0;
+    }
+
+    .about-banner ul {
+      list-style: none;
+      margin: 12px 0;
+      padding-left: 8px;
+    }
+
+    .about-banner ul li {
+      color: #90e0ef;
+      font-size: 0.9rem;
+      padding: 3px 0;
+    }
+
+    .free-label {
+      display: inline-block;
+      background: linear-gradient(135deg, #0077b6, #00b4d8);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.85rem;
+      border-radius: 6px;
+      padding: 4px 14px;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎣 バス釣り釣果ダッシュボード</h1>
+    <p>全国主要フィールドの最新YouTube動画</p>
+  </header>
+
+  <main>
+    <!-- サービス紹介 -->
+    <section class="about-banner">
+      <p>🎣 <strong>バス釣りをされる方へ</strong> — 全国のバス釣りフィールド情報を一元化したWebサービスです。</p>
+      <ul>
+        <li>✅ 各フィールドのボート屋様の最新釣果情報</li>
+        <li>✅ フィールド別YouTube動画</li>
+        <li>✅ アングラーの皆様の釣果投稿</li>
+      </ul>
+      <p>釣行前の情報収集にぜひご活用ください。また釣果情報の投稿もお待ちしております！<br>
+      <span class="free-label">✨ 無料でご利用いただけます</span></p>
+    </section>
+
+    <!-- 釣果投稿フォーム -->
+    <section class="catch-post-section">
+      <h2>🐟 釣果を投稿する</h2>
+      <form class="catch-form" method="POST" action="/post_catch">
+        <div class="form-group">
+          <label for="field_name">フィールド名</label>
+          <select id="field_name" name="field_name" required>
+            <option value="" disabled selected>選択してください</option>
+            {% for field in field_data %}
+            <option value="{{ field.name }}">{{ field.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="count">釣果数（匹）</label>
+          <input type="number" id="count" name="count" min="0" placeholder="例: 3">
+        </div>
+        <div class="form-group">
+          <label for="size_cm">サイズ（cm）</label>
+          <input type="number" id="size_cm" name="size_cm" min="0" step="0.1" placeholder="例: 42.5">
+        </div>
+        <div class="form-group">
+          <label for="lure">使用ルアー</label>
+          <input type="text" id="lure" name="lure" placeholder="例: スピナーベイト">
+        </div>
+        <div class="form-group">
+          <label for="fishing_date">釣行日</label>
+          <input type="date" id="fishing_date" name="fishing_date">
+        </div>
+        <div class="form-group">
+          <label for="fishing_time">時間帯</label>
+          <input type="time" id="fishing_time" name="fishing_time">
+        </div>
+        <div class="form-group">
+          <label for="weather">天気</label>
+          <select id="weather" name="weather">
+            <option value="">選択してください</option>
+            <option value="晴れ">☀️ 晴れ</option>
+            <option value="曇り">☁️ 曇り</option>
+            <option value="雨">🌧️ 雨</option>
+            <option value="霧">🌫️ 霧</option>
+            <option value="雪">❄️ 雪</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="water_temp">水温（℃）</label>
+          <input type="number" id="water_temp" name="water_temp" min="0" max="40" step="0.1" placeholder="例: 18.5">
+        </div>
+        <div class="form-group full-width">
+          <label for="comment">コメント</label>
+          <textarea id="comment" name="comment" placeholder="釣り場の状況やヒットパターンなど..."></textarea>
+        </div>
+        <div class="submit-wrap">
+          <button type="submit" class="btn-post">投稿する</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 釣果一覧 -->
+    <section class="catch-list-section">
+      <div class="catch-list-header">
+        <h2>📋 みんなの釣果</h2>
+        {% if catches %}
+        <div class="catch-filters">
+          <select id="filter-field" onchange="filterCatches()">
+            <option value="">📍 全フィールド</option>
+            {% for field in field_data %}
+            <option value="{{ field.name }}">{{ field.name }}</option>
+            {% endfor %}
+          </select>
+          <select id="filter-sort" onchange="filterCatches()">
+            <option value="newest">🕐 新着順</option>
+            <option value="oldest">🕐 古い順</option>
+            <option value="size">📏 サイズ順</option>
+            <option value="count">🐟 釣果数順</option>
+          </select>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if catches %}
+      <div class="catch-table-wrap">
+        <table class="catch-table" id="catch-table">
+          <thead>
+            <tr>
+              <th>投稿日時</th>
+              <th>フィールド</th>
+              <th>釣行日</th>
+              <th>時間帯</th>
+              <th>天気</th>
+              <th>水温</th>
+              <th>釣果数</th>
+              <th>サイズ</th>
+              <th>使用ルアー</th>
+              <th>コメント</th>
+            </tr>
+          </thead>
+          <tbody id="catch-tbody">
+            {% for c in catches %}
+            <tr
+              data-field="{{ c.field_name }}"
+              data-posted="{{ c.posted_at }}"
+              data-size="{{ c.size_cm if c.size_cm is not none else -1 }}"
+              data-count="{{ c.count if c.count is not none else -1 }}"
+            >
+              <td style="white-space:nowrap; color:#5b93a8;">{{ c.posted_at }}</td>
+              <td><span class="field-badge">{{ c.field_name }}</span></td>
+              <td style="white-space:nowrap;">{{ c.fishing_date or '—' }}</td>
+              <td style="white-space:nowrap;">{{ c.fishing_time or '—' }}</td>
+              <td>{{ c.weather or '—' }}</td>
+              <td>{{ (c.water_temp ~ '℃') if c.water_temp is not none else '—' }}</td>
+              <td>{{ c.count ~ '匹' if c.count is not none else '—' }}</td>
+              <td>{{ c.size_cm ~ ' cm' if c.size_cm is not none else '—' }}</td>
+              <td>{{ c.lure or '—' }}</td>
+              <td>{{ c.comment or '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <p id="no-result" style="display:none; color:#607d8b; padding:12px 0; font-size:0.9rem;">
+          該当する釣果がありません。
+        </p>
+      </div>
+      {% else %}
+      <p class="catch-empty">まだ釣果の投稿がありません。最初の釣果を投稿してみましょう！</p>
+      {% endif %}
+    </section>
+
+    {% for field in field_data %}
+    <section class="field-section" data-field="{{ field.name }}">
+      <h2 class="field-title">{{ field.name }}</h2>
+      {% if field.videos %}
+      <div class="video-grid">
+        {% for video in field.videos %}
+        <a class="video-card" href="{{ video.url }}" target="_blank" rel="noopener noreferrer">
+          <img src="{{ video.thumbnail }}" alt="{{ video.title }}" loading="lazy">
+          <div class="video-info">
+            <div class="video-title">{{ video.title }}</div>
+            <div class="video-meta">
+              <span class="video-channel">{{ video.channel }}</span>
+              <span class="video-date">{{ video.published_at }}</span>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="no-videos">動画を取得できませんでした。</p>
+      {% endif %}
+
+      {% if field.boat_shops %}
+      <div class="boat-shops">
+        <div class="boat-shop-title">⛵ ボート屋情報</div>
+        {% for shop in field.boat_shops %}
+        <div class="rss-shop">
+          <div class="rss-shop-name">{{ shop.name }}</div>
+          {% if shop.error %}
+          <p class="rss-error">情報を取得できませんでした。</p>
+          {% elif shop['items'] %}
+            {% for item in shop['items'] %}
+            <div class="rss-item">
+              <a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.title }}</a>
+              <span class="rss-date">{{ item.published }}</span>
+            </div>
+            {% endfor %}
+          {% else %}
+          <p class="rss-error">記事がありません。</p>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </section>
+    {% endfor %}
+  </main>
+
+  <!-- 更新ステータスバー -->
+  <div id="update-bar" style="
+    text-align:center; padding:10px; font-size:0.8rem;
+    color:#5b93a8; background:#0d1b2a; border-top:1px solid #1b2d3e;">
+    🔄 最終更新: <span id="last-updated">読み込み中...</span>　｜　次回更新まで <span id="next-update">—</span>
+  </div>
+
+  <footer>
+    Powered by YouTube Data API v3
+  </footer>
+
+<script>
+  // ── 釣果フィルター＆ソート ────────────────────────────
+  function filterCatches() {
+    const fieldVal = document.getElementById('filter-field').value;
+    const sortVal  = document.getElementById('filter-sort').value;
+    const tbody    = document.getElementById('catch-tbody');
+    if (!tbody) return;
+
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+
+    // フィールドでフィルタ
+    let visible = rows.filter(row => {
+      if (!fieldVal) return true;
+      return row.dataset.field === fieldVal;
+    });
+
+    // 非表示にする
+    rows.forEach(r => r.style.display = 'none');
+
+    // ソート
+    visible.sort((a, b) => {
+      if (sortVal === 'newest') return b.dataset.posted.localeCompare(a.dataset.posted);
+      if (sortVal === 'oldest') return a.dataset.posted.localeCompare(b.dataset.posted);
+      if (sortVal === 'size')   return parseFloat(b.dataset.size)  - parseFloat(a.dataset.size);
+      if (sortVal === 'count')  return parseFloat(b.dataset.count) - parseFloat(a.dataset.count);
+      return 0;
+    });
+
+    // 表示＆並び替え
+    visible.forEach(r => {
+      r.style.display = '';
+      tbody.appendChild(r);
+    });
+
+    const noResult = document.getElementById('no-result');
+    if (noResult) noResult.style.display = visible.length === 0 ? 'block' : 'none';
+  }
+
+  // ── Ajax 自動更新（5分ごと）────────────────────────────
+  const UPDATE_INTERVAL = 5 * 60 * 1000; // 5分（ミリ秒）
+  let nextUpdateAt = Date.now() + UPDATE_INTERVAL;
+
+  function formatTime(date) {
+    return date.toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'});
+  }
+
+  function buildVideoGrid(videos) {
+    if (!videos || videos.length === 0) {
+      return '<p class="no-videos">動画を取得できませんでした。</p>';
+    }
+    return '<div class="video-grid">' + videos.map(v => `
+      <a class="video-card" href="${v.url}" target="_blank" rel="noopener noreferrer">
+        <img src="${v.thumbnail}" alt="${v.title}" loading="lazy">
+        <div class="video-info">
+          <div class="video-title">${v.title}</div>
+          <div class="video-meta">
+            <span class="video-channel">${v.channel}</span>
+            <span class="video-date">${v.published_at}</span>
+          </div>
+        </div>
+      </a>`).join('') + '</div>';
+  }
+
+  function buildBoatShops(boat_shops) {
+    if (!boat_shops || boat_shops.length === 0) return '';
+    return '<div class="boat-shops"><div class="boat-shop-title">⛵ ボート屋情報</div>' +
+      boat_shops.map(shop => {
+        let content = `<div class="rss-shop"><div class="rss-shop-name">${shop.name}</div>`;
+        if (shop.error) {
+          content += '<p class="rss-error">情報を取得できませんでした。</p>';
+        } else if (shop.items && shop.items.length > 0) {
+          content += shop.items.map(item =>
+            `<div class="rss-item">
+              <a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.title}</a>
+              <span class="rss-date">${item.published}</span>
+            </div>`
+          ).join('');
+        } else {
+          content += '<p class="rss-error">記事がありません。</p>';
+        }
+        return content + '</div>';
+      }).join('') + '</div>';
+  }
+
+  async function refreshFields() {
+    try {
+      const res = await fetch('/api/fields');
+      if (!res.ok) throw new Error('fetch failed');
+      const fields = await res.json();
+
+      fields.forEach(field => {
+        const section = document.querySelector(`[data-field="${field.name}"]`);
+        if (!section) return;
+
+        // 動画グリッドを更新
+        const existingGrid = section.querySelector('.video-grid, .no-videos');
+        const newGridHTML = buildVideoGrid(field.videos);
+        if (existingGrid) {
+          existingGrid.outerHTML = newGridHTML;
+        } else {
+          section.querySelector('h2').insertAdjacentHTML('afterend', newGridHTML);
+        }
+
+        // ボート屋RSSを更新
+        const existingBoat = section.querySelector('.boat-shops');
+        const newBoatHTML = buildBoatShops(field.boat_shops);
+        if (existingBoat) {
+          existingBoat.outerHTML = newBoatHTML || '';
+        } else if (newBoatHTML) {
+          section.insertAdjacentHTML('beforeend', newBoatHTML);
+        }
+      });
+
+      nextUpdateAt = Date.now() + UPDATE_INTERVAL;
+      document.getElementById('last-updated').textContent = formatTime(new Date());
+    } catch (e) {
+      console.warn('更新失敗:', e);
+    }
+  }
+
+  // カウントダウン表示（1分ごと）
+  function updateCountdown() {
+    const remaining = Math.max(0, Math.round((nextUpdateAt - Date.now()) / 60000));
+    document.getElementById('next-update').textContent =
+      remaining <= 0 ? 'まもなく...' : `約${remaining}分後`;
+  }
+
+  // 初期表示
+  document.getElementById('last-updated').textContent = formatTime(new Date());
+  updateCountdown();
+
+  // 定期実行
+  setInterval(refreshFields, UPDATE_INTERVAL);
+  setInterval(updateCountdown, 60 * 1000);
+</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+# 環境変数・APIキー（絶対にコミットしない）
+.env
+.env.*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# データベース
+*.db
+*.sqlite3
+
+# 仮想環境
+.venv/
+venv/
+env/
+
+# Claude Code設定（ローカル専用）
+.claude/
+
+# macOS
+.DS_Store
+
+# ログ
+*.log

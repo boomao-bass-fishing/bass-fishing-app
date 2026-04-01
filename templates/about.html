@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>このサービスについて | バス釣り釣果ダッシュボード</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: #0d1b2a;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a3a5c, #0d6b8a);
+      padding: 24px 32px;
+      text-align: center;
+      border-bottom: 3px solid #00b4d8;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      color: #ffffff;
+      letter-spacing: 0.05em;
+    }
+
+    header p {
+      margin-top: 6px;
+      color: #90e0ef;
+      font-size: 0.9rem;
+    }
+
+    header nav {
+      margin-top: 12px;
+    }
+
+    header nav a {
+      color: #48cae4;
+      text-decoration: none;
+      font-size: 0.9rem;
+      border: 1px solid #48cae4;
+      border-radius: 20px;
+      padding: 4px 16px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    header nav a:hover {
+      background: #48cae4;
+      color: #0d1b2a;
+    }
+
+    main {
+      max-width: 720px;
+      margin: 60px auto;
+      padding: 0 24px;
+    }
+
+    .about-card {
+      background: #132233;
+      border: 1px solid #1e3a50;
+      border-radius: 16px;
+      padding: 40px 48px;
+      line-height: 1.9;
+    }
+
+    .about-card h2 {
+      font-size: 1.5rem;
+      color: #00b4d8;
+      border-left: 5px solid #00b4d8;
+      padding-left: 14px;
+      margin-bottom: 28px;
+    }
+
+    .about-card p {
+      color: #cde8f4;
+      font-size: 1rem;
+      margin-bottom: 24px;
+    }
+
+    .about-card ul {
+      list-style: none;
+      margin-bottom: 24px;
+      background: #0d1b2a;
+      border-radius: 10px;
+      padding: 20px 24px;
+      border: 1px solid #1e3a50;
+    }
+
+    .about-card ul li {
+      color: #90e0ef;
+      font-size: 0.95rem;
+      padding: 6px 0;
+      border-bottom: 1px solid #1e3a50;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .about-card ul li:last-child {
+      border-bottom: none;
+    }
+
+    .about-card ul li::before {
+      content: "✅";
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .about-card .free-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #0077b6, #00b4d8);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      border-radius: 8px;
+      padding: 8px 20px;
+      margin-top: 8px;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 36px;
+      color: #48cae4;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #3a6278;
+      font-size: 0.8rem;
+      border-top: 1px solid #1b2d3e;
+      margin-top: 60px;
+    }
+
+    footer a {
+      color: #48cae4;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎣 バス釣り釣果ダッシュボード</h1>
+    <p>全国主要フィールドの最新YouTube動画</p>
+    <nav>
+      <a href="/">← ダッシュボードに戻る</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="about-card">
+      <h2>🎣 このサービスについて</h2>
+
+      <p>バス釣りをされる方へご案内です。</p>
+
+      <p>全国のバス釣りフィールド情報を一元化したWebサービスです。</p>
+
+      <p><strong style="color:#48cae4;">【掲載内容】</strong></p>
+      <ul>
+        <li>各フィールドのボート屋様の最新釣果情報</li>
+        <li>フィールド別YouTube動画</li>
+        <li>アングラーの皆様の釣果投稿</li>
+      </ul>
+
+      <p>釣行前の情報収集にぜひご活用ください。<br>
+      また釣果情報の投稿もお待ちしております！</p>
+
+      <span class="free-badge">✨ 無料でご利用いただけます</span>
+    </div>
+
+    <a class="back-link" href="/">← ダッシュボードに戻る</a>
+  </main>
+
+  <footer>
+    Powered by YouTube Data API v3 ｜
+    <a href="/about">このサービスについて</a>
+  </footer>
+</body>
+</html>
