@@ -441,6 +441,58 @@
       padding: 4px 14px;
       margin-top: 6px;
     }
+
+    /* フィールド選択タブ */
+    .field-selector {
+      margin-bottom: 24px;
+    }
+
+    .field-selector h2 {
+      font-size: 1.2rem;
+      color: #00b4d8;
+      border-left: 5px solid #00b4d8;
+      padding-left: 12px;
+      margin-bottom: 14px;
+    }
+
+    .field-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .field-tab-btn {
+      background: #1b2d3e;
+      color: #7eb8d4;
+      border: 1px solid #263d52;
+      border-radius: 20px;
+      padding: 7px 16px;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      white-space: nowrap;
+    }
+
+    .field-tab-btn:hover {
+      background: #0d4f6b;
+      color: #caf0f8;
+      border-color: #00b4d8;
+    }
+
+    .field-tab-btn.active {
+      background: linear-gradient(135deg, #0077b6, #00b4d8);
+      color: #fff;
+      border-color: transparent;
+      font-weight: 700;
+    }
+
+    .field-section {
+      display: none;
+    }
+
+    .field-section.active {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -590,8 +642,21 @@
       {% endif %}
     </section>
 
+    <!-- フィールド選択タブ -->
+    <section class="field-selector">
+      <h2>📍 フィールドを選ぶ</h2>
+      <div class="field-tabs">
+        {% for field in field_data %}
+        <button class="field-tab-btn{% if loop.first %} active{% endif %}"
+                onclick="selectField('{{ field.name }}', this)">
+          {{ field.name }}
+        </button>
+        {% endfor %}
+      </div>
+    </section>
+
     {% for field in field_data %}
-    <section class="field-section" data-field="{{ field.name }}">
+    <section class="field-section{% if loop.first %} active{% endif %}" data-field="{{ field.name }}">
       <h2 class="field-title">{{ field.name }}</h2>
       {% if field.videos %}
       <div class="video-grid">
@@ -650,6 +715,18 @@
   </footer>
 
 <script>
+  // ── フィールド選択タブ ────────────────────────────
+  function selectField(fieldName, btn) {
+    // タブボタンのactive切り替え
+    document.querySelectorAll('.field-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // フィールドセクションの表示切り替え
+    document.querySelectorAll('.field-section').forEach(sec => {
+      sec.classList.toggle('active', sec.dataset.field === fieldName);
+    });
+  }
+
   // ── 釣果フィルター＆ソート ────────────────────────────
   function filterCatches() {
     const fieldVal = document.getElementById('filter-field').value;
