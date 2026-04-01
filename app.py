@@ -1,4 +1,5 @@
 import os
+import json
 import time
 import sqlite3
 import feedparser
@@ -36,6 +37,14 @@ def init_db():
                 fishing_time TEXT,
                 weather TEXT,
                 water_temp REAL
+            )
+        """)
+        # YouTube キャッシュをDBに永続化（サーバー再起動後もキャッシュが残る）
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS yt_cache (
+                query TEXT PRIMARY KEY,
+                data  TEXT NOT NULL,
+                ts    REAL NOT NULL
             )
         """)
         # 既存DBへの列追加（初回以降のマイグレーション）
@@ -143,10 +152,26 @@ _rss_cache: dict     = {}   # {"url":   {"data": {...}, "ts": float}}
 
 def fetch_videos(query, max_results=6):
     now = time.time()
+
+    # 1. オンメモリキャッシュ（最速）
     cached = _youtube_cache.get(query)
     if cached and (now - cached["ts"]) < YOUTUBE_CACHE_TTL:
         return cached["data"]
 
+    # 2. SQLiteキャッシュ（サーバー再起動後もキャッシュが残る）
+    try:
+        with get_db() as conn:
+            row = conn.execute(
+                "SELECT data, ts FROM yt_cache WHERE query = ?", (query,)
+            ).fetchone()
+            if row and (now - row["ts"]) < YOUTUBE_CACHE_TTL:
+                data = json.loads(row["data"])
+                _youtube_cache[query] = {"data": data, "ts": row["ts"]}
+                return data
+    except Exception:
+        pass
+
+    # 3. YouTube API 呼び出し（キャッシュミス時のみ）
     params = {
         "part": "snippet",
         "q": query,
@@ -172,12 +197,34 @@ def fetch_videos(query, max_results=6):
                 "published_at": snippet["publishedAt"][:10],
                 "url": f"https://www.youtube.com/watch?v={video_id}",
             })
+        # オンメモリキャッシュに保存
         _youtube_cache[query] = {"data": videos, "ts": now}
+        # SQLiteに永続化（次回サーバー起動時もキャッシュが使える）
+        try:
+            with get_db() as conn:
+                conn.execute(
+                    """INSERT INTO yt_cache (query, data, ts) VALUES (?, ?, ?)
+                       ON CONFLICT(query) DO UPDATE SET data=excluded.data, ts=excluded.ts""",
+                    (query, json.dumps(videos), now)
+                )
+        except Exception:
+            pass
         return videos
     except Exception as e:
         print(f"Error fetching videos for '{query}': {e}")
-        # エラー時は古いキャッシュがあれば返す
-        return cached["data"] if cached else []
+        if cached:
+            return cached["data"]
+        # エラー時は古いSQLiteキャッシュがあれば返す
+        try:
+            with get_db() as conn:
+                row = conn.execute(
+                    "SELECT data FROM yt_cache WHERE query = ?", (query,)
+                ).fetchone()
+                if row:
+                    return json.loads(row["data"])
+        except Exception:
+            pass
+        return []
 
 
 def fetch_rss(shop_name, rss_url, website=None, max_items=5):
@@ -211,12 +258,12 @@ def fetch_rss(shop_name, rss_url, website=None, max_items=5):
         return cached["data"] if cached else {"name": shop_name, "items": [], "error": str(e), "website": website}
 
 
-def build_field_data():
+def build_field_data(include_videos=True):
     """全フィールドのデータを組み立てる（キャッシュ付き）"""
     field_data = []
     for query in FIELDS:
         field_name = query.replace(" バス釣り", "")
-        videos = fetch_videos(query)
+        videos = fetch_videos(query) if include_videos else []
 
         boat_shops = []
         for shop in BOAT_SHOP_RSS.get(field_name, []):
@@ -274,6 +321,16 @@ def about():
     return render_template("about.html")
 
 
+@app.route("/api/field/<field_name>")
+def api_field(field_name):
+    """単一フィールドの動画データを JSON で返す（遅延読み込み用）"""
+    query = field_name + " バス釣り"
+    if query not in FIELDS:
+        return jsonify({"error": "not found"}), 404
+    videos = fetch_videos(query)
+    return jsonify({"name": field_name, "videos": videos})
+
+
 @app.route("/api/fields")
 def api_fields():
     """Ajax 用エンドポイント：フィールドデータを JSON で返す（キャッシュ活用）"""
@@ -287,7 +344,9 @@ def index():
             "SELECT * FROM catches ORDER BY posted_at DESC LIMIT 50"
         ).fetchall()
 
-    field_data = build_field_data()
+    # 初回ロード時はYouTube APIを呼ばない（クォータ節約）
+    # 動画はタブクリック時に /api/field/<name> で遅延取得
+    field_data = build_field_data(include_videos=False)
     return render_template("index.html", field_data=field_data, catches=catches)
 
 

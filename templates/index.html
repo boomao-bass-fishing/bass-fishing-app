@@ -673,26 +673,11 @@
     </section>
 
     {% for field in field_data %}
-    <section class="field-section{% if loop.first %} active{% endif %}" data-field="{{ field.name }}">
+    <section class="field-section{% if loop.first %} active{% endif %}" data-field="{{ field.name }}" data-loaded="false">
       <h2 class="field-title">{{ field.name }}</h2>
-      {% if field.videos %}
-      <div class="video-grid">
-        {% for video in field.videos %}
-        <a class="video-card" href="{{ video.url }}" target="_blank" rel="noopener noreferrer">
-          <img src="{{ video.thumbnail }}" alt="{{ video.title }}" loading="lazy">
-          <div class="video-info">
-            <div class="video-title">{{ video.title }}</div>
-            <div class="video-meta">
-              <span class="video-channel">{{ video.channel }}</span>
-              <span class="video-date">{{ video.published_at }}</span>
-            </div>
-          </div>
-        </a>
-        {% endfor %}
+      <div class="video-placeholder">
+        <p class="no-videos" style="color:#48cae4;">📺 動画を読み込み中...</p>
       </div>
-      {% else %}
-      <p class="no-videos">動画を取得できませんでした。</p>
-      {% endif %}
 
       {% if field.boat_shops %}
       <div class="boat-shops">
@@ -734,8 +719,8 @@
   </footer>
 
 <script>
-  // ── フィールド選択タブ ────────────────────────────
-  function selectField(fieldName, btn) {
+  // ── フィールド選択タブ（動画の遅延読み込み付き）────────────────────────────
+  async function selectField(fieldName, btn) {
     // タブボタンのactive切り替え
     document.querySelectorAll('.field-tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
@@ -744,7 +729,39 @@
     document.querySelectorAll('.field-section').forEach(sec => {
       sec.classList.toggle('active', sec.dataset.field === fieldName);
     });
+
+    // 未読み込みの場合のみYouTube動画を取得（APIクォータ節約）
+    const section = document.querySelector(`[data-field="${fieldName}"]`);
+    if (section && section.dataset.loaded === 'false') {
+      section.dataset.loaded = 'loading';
+      try {
+        const res = await fetch(`/api/field/${encodeURIComponent(fieldName)}`);
+        if (!res.ok) throw new Error('fetch failed');
+        const data = await res.json();
+        const placeholder = section.querySelector('.video-placeholder');
+        if (placeholder) {
+          placeholder.outerHTML = buildVideoGrid(data.videos);
+        }
+        section.dataset.loaded = 'true';
+      } catch (e) {
+        console.warn('動画取得失敗:', e);
+        const placeholder = section.querySelector('.video-placeholder');
+        if (placeholder) {
+          placeholder.innerHTML = '<p class="no-videos">動画を取得できませんでした。</p>';
+        }
+        section.dataset.loaded = 'error';
+      }
+    }
   }
+
+  // 初回表示フィールドの動画を自動読み込み
+  window.addEventListener('DOMContentLoaded', () => {
+    const firstSection = document.querySelector('.field-section.active');
+    if (firstSection) {
+      const firstBtn = document.querySelector('.field-tab-btn.active');
+      selectField(firstSection.dataset.field, firstBtn || document.createElement('button'));
+    }
+  });
 
   // ── 釣果フィルター＆ソート ────────────────────────────
   function filterCatches() {
@@ -783,10 +800,7 @@
     if (noResult) noResult.style.display = visible.length === 0 ? 'block' : 'none';
   }
 
-  // ── Ajax 自動更新（5分ごと）────────────────────────────
-  const UPDATE_INTERVAL = 5 * 60 * 1000; // 5分（ミリ秒）
-  let nextUpdateAt = Date.now() + UPDATE_INTERVAL;
-
+  // ── 動画グリッド構築ヘルパー ────────────────────────────
   function formatTime(date) {
     return date.toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'});
   }
@@ -831,56 +845,9 @@
       }).join('') + '</div>';
   }
 
-  async function refreshFields() {
-    try {
-      const res = await fetch('/api/fields');
-      if (!res.ok) throw new Error('fetch failed');
-      const fields = await res.json();
-
-      fields.forEach(field => {
-        const section = document.querySelector(`[data-field="${field.name}"]`);
-        if (!section) return;
-
-        // 動画グリッドを更新
-        const existingGrid = section.querySelector('.video-grid, .no-videos');
-        const newGridHTML = buildVideoGrid(field.videos);
-        if (existingGrid) {
-          existingGrid.outerHTML = newGridHTML;
-        } else {
-          section.querySelector('h2').insertAdjacentHTML('afterend', newGridHTML);
-        }
-
-        // ボート屋RSSを更新
-        const existingBoat = section.querySelector('.boat-shops');
-        const newBoatHTML = buildBoatShops(field.boat_shops);
-        if (existingBoat) {
-          existingBoat.outerHTML = newBoatHTML || '';
-        } else if (newBoatHTML) {
-          section.insertAdjacentHTML('beforeend', newBoatHTML);
-        }
-      });
-
-      nextUpdateAt = Date.now() + UPDATE_INTERVAL;
-      document.getElementById('last-updated').textContent = formatTime(new Date());
-    } catch (e) {
-      console.warn('更新失敗:', e);
-    }
-  }
-
-  // カウントダウン表示（1分ごと）
-  function updateCountdown() {
-    const remaining = Math.max(0, Math.round((nextUpdateAt - Date.now()) / 60000));
-    document.getElementById('next-update').textContent =
-      remaining <= 0 ? 'まもなく...' : `約${remaining}分後`;
-  }
-
-  // 初期表示
+  // 初期表示時刻
   document.getElementById('last-updated').textContent = formatTime(new Date());
-  updateCountdown();
-
-  // 定期実行
-  setInterval(refreshFields, UPDATE_INTERVAL);
-  setInterval(updateCountdown, 60 * 1000);
+  document.getElementById('next-update').textContent = '—';
 </script>
 </body>
 </html>
