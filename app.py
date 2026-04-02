@@ -91,21 +91,54 @@ FIELDS = [
 
 # フィールド名 → ボート屋RSSフィードURL のマッピング
 BOAT_SHOP_RSS = {
-    "霞ヶ浦": [],
-    "琵琶湖": [],
-    "牛久沼": [],
-    "亀山湖": [],
-    "桧原湖": [],
-    "遠賀川": [],
-    "浜名湖": [],
-    "神流湖": [],
+    "霞ヶ浦": [
+        {"name": "バスターのぐち",  "url": None, "website": "https://bassternoguchi.com/"},
+        {"name": "Hearts Rental", "url": None, "website": "http://heartsrental.com/"},
+        {"name": "B-GETS",        "url": None, "website": "http://www.b-gets.com/rentalboat/rentalboat.htm"},
+    ],
+    "琵琶湖": [
+        {"name": "MoreMarine（モアマリン）", "url": None, "website": "https://more-marine.jp/"},
+        {"name": "小林貸船釣具店",           "url": None, "website": "https://www.boatkob.com/"},
+        {"name": "DEKABASS",                "url": None, "website": "https://www.rental-boat.net/"},
+        {"name": "レークマリーナ",           "url": None, "website": "http://www.lake-marina.com/"},
+        {"name": "舟橋貸舟釣具店",           "url": None, "website": "https://www.boat-funahashi.com/"},
+        {"name": "マリーナフレンズ",         "url": None, "website": "https://www.marina-friends.com/"},
+    ],
+    "牛久沼": [
+        {"name": "たまやボート", "url": None, "website": "http://www.tamayaboat.com/"},
+    ],
+    "亀山湖": [
+        {"name": "のむらボートハウス",  "url": None, "website": "http://nomuraboathouse.la.coocan.jp/"},
+        {"name": "湖畔の宿 つばきもと", "url": None, "website": "https://tubakimoto.com/"},
+        {"name": "トキタボート",        "url": None, "website": "http://www.tokitaboat.com/"},
+    ],
+    "桧原湖": [
+        {"name": "いつもの処ふじもと",    "url": None, "website": "https://hibarako.com/"},
+        {"name": "バックス（BACSS）",    "url": None, "website": "https://bacss.jp/green/bass_fishing"},
+        {"name": "こたかもり",            "url": None, "website": "http://www.kotakamori.com/bass.html"},
+        {"name": "早稲沢浜キャンプ場",   "url": None, "website": "http://wasezawaboat.wp-x.jp/"},
+    ],
+    "遠賀川": [
+        {"name": "ロッドマン",  "url": None, "website": "https://www.rod-man.jp/?page_id=5363"},
+        {"name": "LA10lb",    "url": None, "website": "http://la10lb.com/"},
+    ],
+    "浜名湖": [
+        {"name": "スズキマリーナ浜名湖",  "url": None, "website": "https://suzukimarine.co.jp/rental/hamanako/"},
+        {"name": "ヤマハマリーナ浜名湖",  "url": None, "website": "https://hamanako.yamaha-marina.co.jp/"},
+        {"name": "ジョナサン",            "url": None, "website": "http://www.jona-3.com/rental/jonathan/"},
+    ],
+    "神流湖": [
+        {"name": "神流湖観光ボート（KKB）", "url": None, "website": "https://reserver.co.jp/shop/kkb/"},
+    ],
     "榛名湖": [
         {"name": "水月 榛名観光ボート", "url": "https://harunako.net/rss"},
     ],
     "片倉ダム": [
         {"name": "レンタルボート もとよし", "url": "https://rssblog.ameba.jp/boat-motoyoshi/rss.html"},
     ],
-    "豊英湖": [],
+    "豊英湖": [
+        {"name": "豊英湖釣り舟センター", "url": None, "website": "http://www.bassinheaven.com/toyofusa/toyofusaindex.html"},
+    ],
     "三島湖": [
         {"name": "石井釣舟店", "url": "https://mishimako-ishii-bass.net/feed/"},
         {"name": "ともゑ釣り船", "url": "https://tomoeboat.jp/feed/"},
