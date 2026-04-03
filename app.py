@@ -47,6 +47,13 @@ def init_db():
                 ts    REAL NOT NULL
             )
         """)
+        # 訪問数カウンター（日付ごとに記録）
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS page_views (
+                date  TEXT PRIMARY KEY,
+                count INTEGER NOT NULL DEFAULT 0
+            )
+        """)
         # 既存DBへの列追加（初回以降のマイグレーション）
         for col, definition in [
             ("fishing_date", "TEXT"),
@@ -291,6 +298,36 @@ def fetch_rss(shop_name, rss_url, website=None, max_items=5):
         return cached["data"] if cached else {"name": shop_name, "items": [], "error": str(e), "website": website}
 
 
+def record_visit():
+    """本日の訪問数を+1する"""
+    today = datetime.now().strftime("%Y-%m-%d")
+    with get_db() as conn:
+        conn.execute("""
+            INSERT INTO page_views (date, count) VALUES (?, 1)
+            ON CONFLICT(date) DO UPDATE SET count = count + 1
+        """, (today,))
+
+
+def get_visit_stats():
+    """訪問統計を返す（合計・今日・過去7日）"""
+    today = datetime.now().strftime("%Y-%m-%d")
+    with get_db() as conn:
+        total = conn.execute("SELECT COALESCE(SUM(count), 0) FROM page_views").fetchone()[0]
+        today_count = conn.execute(
+            "SELECT COALESCE(count, 0) FROM page_views WHERE date = ?", (today,)
+        ).fetchone()
+        today_count = today_count[0] if today_count else 0
+        last7 = conn.execute("""
+            SELECT date, count FROM page_views
+            ORDER BY date DESC LIMIT 7
+        """).fetchall()
+    return {
+        "total": total,
+        "today": today_count,
+        "last7": [{"date": r["date"], "count": r["count"]} for r in last7],
+    }
+
+
 def build_field_data(include_videos=True):
     """全フィールドのデータを組み立てる（キャッシュ付き）"""
     field_data = []
@@ -370,6 +407,13 @@ def api_fields():
     return jsonify(build_field_data())
 
 
+@app.route("/stats")
+def stats():
+    """訪問統計ページ"""
+    data = get_visit_stats()
+    return render_template("stats.html", **data)
+
+
 @app.route("/")
 def index():
     with get_db() as conn:
@@ -377,10 +421,13 @@ def index():
             "SELECT * FROM catches ORDER BY posted_at DESC LIMIT 50"
         ).fetchall()
 
+    record_visit()  # 訪問数をカウント
+    visit_stats = get_visit_stats()
+
     # 初回ロード時はYouTube APIを呼ばない（クォータ節約）
     # 動画はタブクリック時に /api/field/<name> で遅延取得
     field_data = build_field_data(include_videos=False)
-    return render_template("index.html", field_data=field_data, catches=catches)
+    return render_template("index.html", field_data=field_data, catches=catches, visit_stats=visit_stats)
 
 
 if __name__ == "__main__":
