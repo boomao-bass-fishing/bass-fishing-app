@@ -534,7 +534,7 @@
     <!-- 釣果投稿フォーム -->
     <section class="catch-post-section">
       <h2>🐟 釣果を投稿する</h2>
-      <form class="catch-form" method="POST" action="/post_catch">
+      <form class="catch-form" method="POST" action="/post_catch" enctype="multipart/form-data">
         <div class="form-group">
           <label for="field_name">フィールド名</label>
           <select id="field_name" name="field_name" required>
@@ -583,6 +583,10 @@
           <label for="comment">コメント</label>
           <textarea id="comment" name="comment" placeholder="釣り場の状況やヒットパターンなど..."></textarea>
         </div>
+        <div class="form-group full-width">
+          <label for="photo">写真（任意）</label>
+          <input type="file" id="photo" name="photo" accept="image/*" style="padding:6px 0;">
+        </div>
         <div class="submit-wrap">
           <button type="submit" class="btn-post">投稿する</button>
         </div>
@@ -626,6 +630,7 @@
               <th>サイズ</th>
               <th>使用ルアー</th>
               <th>コメント</th>
+              <th>写真</th>
             </tr>
           </thead>
           <tbody id="catch-tbody">
@@ -646,6 +651,13 @@
               <td>{{ c.size_cm ~ ' cm' if c.size_cm is not none else '—' }}</td>
               <td>{{ c.lure or '—' }}</td>
               <td>{{ c.comment or '—' }}</td>
+              <td>
+                {% if c.photo_url %}
+                <a href="{{ c.photo_url }}" target="_blank" rel="noopener noreferrer">
+                  <img src="{{ c.photo_url }}" alt="釣果写真" style="width:60px; height:60px; object-fit:cover; border-radius:6px; border:1px solid #ddd;">
+                </a>
+                {% else %}—{% endif %}
+              </td>
             </tr>
             {% endfor %}
           </tbody>

@@ -6,6 +6,8 @@ import feedparser
 import requests
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, jsonify
+import cloudinary
+import cloudinary.uploader
 
 from dotenv import load_dotenv
 
@@ -14,6 +16,8 @@ load_dotenv()
 app = Flask(__name__)
 
 DATABASE = os.path.join(os.path.dirname(__file__), "catches.db")
+
+cloudinary.config(cloudinary_url=os.environ.get("CLOUDINARY_URL"))
 
 
 def get_db():
@@ -60,6 +64,7 @@ def init_db():
             ("fishing_time", "TEXT"),
             ("weather",      "TEXT"),
             ("water_temp",   "REAL"),
+            ("photo_url",    "TEXT"),
         ]:
             try:
                 conn.execute(f"ALTER TABLE catches ADD COLUMN {col} {definition}")
@@ -363,13 +368,23 @@ def post_catch():
     water_temp   = request.form.get("water_temp",   "").strip()
     posted_at    = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+    # 写真アップロード
+    photo_url = None
+    photo_file = request.files.get("photo")
+    if photo_file and photo_file.filename:
+        try:
+            result = cloudinary.uploader.upload(photo_file, folder="bass-fishing")
+            photo_url = result["secure_url"]
+        except Exception as e:
+            print(f"Cloudinary upload error: {e}")
+
     if field_name:
         with get_db() as conn:
             conn.execute(
                 """INSERT INTO catches
                    (field_name, count, size_cm, lure, comment, posted_at,
-                    fishing_date, fishing_time, weather, water_temp)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    fishing_date, fishing_time, weather, water_temp, photo_url)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     field_name,
                     int(count) if count.isdigit() else None,
@@ -381,6 +396,7 @@ def post_catch():
                     fishing_time or None,
                     weather or None,
                     float(water_temp) if water_temp else None,
+                    photo_url,
                 ),
             )
     return redirect(url_for("index"))
