@@ -335,7 +335,7 @@ def record_visit():
     with get_db() as conn:
         conn.execute("""
             INSERT INTO page_views (date, count) VALUES (?, 1)
-            ON CONFLICT(date) DO UPDATE SET count = count + 1
+            ON CONFLICT(date) DO UPDATE SET count = page_views.count + 1
         """, (today,))
 
 
