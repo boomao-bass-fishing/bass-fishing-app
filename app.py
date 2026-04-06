@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import urllib.parse
 import psycopg2
 import psycopg2.extras
 import feedparser
@@ -51,7 +52,15 @@ class PgConn:
 
 
 def get_db():
-    conn = psycopg2.connect(DATABASE_URL)
+    url = urllib.parse.urlparse(DATABASE_URL)
+    conn = psycopg2.connect(
+        host=url.hostname,
+        port=url.port or 5432,
+        database=url.path[1:],
+        user=url.username,
+        password=url.password,
+        sslmode='require'
+    )
     return PgConn(conn)
 
 
