@@ -52,18 +52,12 @@ class PgConn:
 
 
 def get_db():
-    db_host = os.environ.get("DB_HOST")
-    db_port = os.environ.get("DB_PORT", "5432")
-    db_name = os.environ.get("DB_NAME", "postgres")
-    db_user = os.environ.get("DB_USER")
-    db_pass = os.environ.get("DB_PASSWORD")
-    print(f"[DEBUG] HOST={db_host} PORT={db_port} NAME={db_name} USER={db_user} PASS_LEN={len(db_pass) if db_pass else 'None'} PASS_START={db_pass[:3] if db_pass else 'None'}", flush=True)
     conn = psycopg2.connect(
-        host=db_host,
-        port=int(db_port),
-        dbname=db_name,
-        user=db_user,
-        password=db_pass,
+        host=os.environ.get("DB_HOST"),
+        port=int(os.environ.get("DB_PORT", "5432")),
+        dbname=os.environ.get("DB_NAME", "postgres"),
+        user=os.environ.get("DB_USER"),
+        password=os.environ.get("DB_PASSWORD"),
         sslmode='require'
     )
     return PgConn(conn)
