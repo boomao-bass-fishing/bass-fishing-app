@@ -1,7 +1,8 @@
 import os
 import json
 import time
-import sqlite3
+import psycopg2
+import psycopg2.extras
 import feedparser
 import requests
 from datetime import datetime
@@ -15,32 +16,61 @@ load_dotenv()
 
 app = Flask(__name__)
 
-DATABASE = os.path.join(os.path.dirname(__file__), "catches.db")
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 cloudinary.config(cloudinary_url=os.environ.get("CLOUDINARY_URL"))
 
 
+class PgConn:
+    def __init__(self, conn):
+        self._conn = conn
+        self._cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    def execute(self, sql, params=None):
+        sql = sql.replace("?", "%s")
+        if params:
+            self._cur.execute(sql, params)
+        else:
+            self._cur.execute(sql)
+        return self._cur
+
+    def executemany(self, sql, params_seq):
+        sql = sql.replace("?", "%s")
+        self._cur.executemany(sql, params_seq)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, *args):
+        if exc_type:
+            self._conn.rollback()
+        else:
+            self._conn.commit()
+        self._cur.close()
+        self._conn.close()
+
+
 def get_db():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
+    conn = psycopg2.connect(DATABASE_URL)
+    return PgConn(conn)
 
 
 def init_db():
     with get_db() as conn:
         conn.execute("""
             CREATE TABLE IF NOT EXISTS catches (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 field_name TEXT NOT NULL,
                 count INTEGER,
-                size_cm REAL,
+                size_cm FLOAT,
                 lure TEXT,
                 comment TEXT,
                 posted_at TEXT NOT NULL,
                 fishing_date TEXT,
                 fishing_time TEXT,
                 weather TEXT,
-                water_temp REAL
+                water_temp FLOAT,
+                photo_url TEXT
             )
         """)
         # YouTube キャッシュをDBに永続化（サーバー再起動後もキャッシュが残る）
@@ -48,7 +78,7 @@ def init_db():
             CREATE TABLE IF NOT EXISTS yt_cache (
                 query TEXT PRIMARY KEY,
                 data  TEXT NOT NULL,
-                ts    REAL NOT NULL
+                ts    FLOAT NOT NULL
             )
         """)
         # 訪問数カウンター（日付ごとに記録）
@@ -58,18 +88,6 @@ def init_db():
                 count INTEGER NOT NULL DEFAULT 0
             )
         """)
-        # 既存DBへの列追加（初回以降のマイグレーション）
-        for col, definition in [
-            ("fishing_date", "TEXT"),
-            ("fishing_time", "TEXT"),
-            ("weather",      "TEXT"),
-            ("water_temp",   "REAL"),
-            ("photo_url",    "TEXT"),
-        ]:
-            try:
-                conn.execute(f"ALTER TABLE catches ADD COLUMN {col} {definition}")
-            except Exception:
-                pass  # 既に存在する場合はスキップ
 
 
 init_db()
@@ -317,11 +335,11 @@ def get_visit_stats():
     """訪問統計を返す（合計・今日・過去7日）"""
     today = datetime.now().strftime("%Y-%m-%d")
     with get_db() as conn:
-        total = conn.execute("SELECT COALESCE(SUM(count), 0) FROM page_views").fetchone()[0]
-        today_count = conn.execute(
-            "SELECT COALESCE(count, 0) FROM page_views WHERE date = ?", (today,)
+        total = conn.execute("SELECT COALESCE(SUM(count), 0) AS total FROM page_views").fetchone()["total"]
+        today_row = conn.execute(
+            "SELECT COALESCE(count, 0) AS cnt FROM page_views WHERE date = ?", (today,)
         ).fetchone()
-        today_count = today_count[0] if today_count else 0
+        today_count = today_row["cnt"] if today_row else 0
         last7 = conn.execute("""
             SELECT date, count FROM page_views
             ORDER BY date DESC LIMIT 7

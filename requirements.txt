@@ -4,3 +4,4 @@ python-dotenv
 feedparser
 gunicorn
 cloudinary
+psycopg2-binary
