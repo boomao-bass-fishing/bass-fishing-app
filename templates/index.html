@@ -211,6 +211,71 @@
       font-size: 0.8rem;
     }
 
+    /* ── タックルリンク ── */
+    .tackle-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .tackle-link {
+      display: inline-block;
+      background: #0d3347;
+      border: 1px solid #1e5070;
+      border-radius: 14px;
+      padding: 3px 10px;
+      font-size: 0.75rem;
+      color: #48cae4;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .tackle-link:hover {
+      background: #1a5c7a;
+      color: #fff;
+    }
+    .tackle-link::before { content: "🛒 "; }
+
+    /* ── ヒットルアーランキング ── */
+    .hit-lures-section {
+      background: #0d1f2d;
+      border: 1px solid #1e5070;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+    }
+    .hit-lures-title {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #48cae4;
+      margin-bottom: 12px;
+    }
+    .hit-lures-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .hit-lure-item {
+      background: #162535;
+      border: 1px solid #1e3a50;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.82rem;
+      color: #caf0f8;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    .hit-lure-item:hover { background: #1a5c7a; }
+    .hit-lure-count {
+      background: #0077b6;
+      border-radius: 10px;
+      padding: 1px 7px;
+      font-size: 0.72rem;
+      color: #fff;
+    }
+
     .shop-website-link {
       display: inline-block;
       color: #48cae4;
@@ -684,6 +749,14 @@
       </div>
     </section>
 
+    <!-- 今週のヒットルアー -->
+    <div class="hit-lures-section" id="hit-lures-section">
+      <div class="hit-lures-title">🎣 今週のヒットルアー（RSS集計）</div>
+      <div class="hit-lures-list" id="hit-lures-list">
+        <span style="color:#5b93a8;font-size:0.85rem;">読み込み中...</span>
+      </div>
+    </div>
+
     {% for field in field_data %}
     <section class="field-section{% if loop.first %} active{% endif %}" data-field="{{ field.name }}" data-loaded="false">
       <h2 class="field-title">{{ field.name }}</h2>
@@ -820,6 +893,14 @@
     return date.toLocaleTimeString('ja-JP', {hour: '2-digit', minute: '2-digit'});
   }
 
+  function buildTackleLinks(tackle) {
+    if (!tackle || tackle.length === 0) return '';
+    const links = tackle.map(t =>
+      `<a class="tackle-link" href="${t.url}" target="_blank" rel="noopener noreferrer">${t.name}</a>`
+    ).join('');
+    return `<div class="tackle-list">${links}</div>`;
+  }
+
   function buildVideoGrid(videos) {
     if (!videos || videos.length === 0) {
       return '<p class="no-videos">動画を取得できませんでした。</p>';
@@ -833,9 +914,32 @@
             <span class="video-channel">${v.channel}</span>
             <span class="video-date">${v.published_at}</span>
           </div>
+          ${buildTackleLinks(v.tackle)}
         </div>
       </a>`).join('') + '</div>';
   }
+
+  // ヒットルアーを非同期で読み込む
+  async function loadHitLures() {
+    try {
+      const res = await fetch('/api/hit-lures');
+      const lures = await res.json();
+      const container = document.getElementById('hit-lures-list');
+      if (!lures || lures.length === 0) {
+        container.innerHTML = '<span style="color:#5b93a8;font-size:0.85rem;">データがまだありません</span>';
+        return;
+      }
+      container.innerHTML = lures.map(l =>
+        `<a class="hit-lure-item" href="${l.url}" target="_blank" rel="noopener noreferrer">
+          ${l.name}<span class="hit-lure-count">${l.count}</span>
+        </a>`
+      ).join('');
+    } catch(e) {
+      document.getElementById('hit-lures-list').innerHTML =
+        '<span style="color:#5b93a8;font-size:0.85rem;">読み込み失敗</span>';
+    }
+  }
+  loadHitLures();
 
   function buildBoatShops(boat_shops) {
     if (!boat_shops || boat_shops.length === 0) return '';

@@ -103,6 +103,118 @@ init_db()
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 YOUTUBE_SEARCH_URL = "https://www.googleapis.com/youtube/v3/search"
 
+# ── タックル辞書（キーワード → Amazon検索ワード） ─────────────────────────
+# (検索キーワード, 表示名, Amazonでの検索クエリ)
+TACKLE_DICT = [
+    # ── ワーム ──
+    ("カバースキャット",     "カバースキャット",       "deps カバースキャット バス"),
+    ("ヤマセンコー",         "ヤマセンコー",           "ゲーリーヤマモト ヤマセンコー"),
+    ("ファットイカ",         "ファットイカ",           "ゲーリーヤマモト ファットイカ"),
+    ("スワンプクローラー",   "スワンプクローラー",     "ゲーリーヤマモト スワンプクローラー"),
+    ("ブラッシュホッグ",     "ブラッシュホッグ",       "ゲーリーヤマモト ブラッシュホッグ"),
+    ("フリックシェイク",     "フリックシェイク",       "ジャッカル フリックシェイク"),
+    ("イモグラブ",           "イモグラブ",             "ゲーリーヤマモト イモグラブ"),
+    ("ドライブシャッド",     "ドライブシャッド",       "OSP ドライブシャッド"),
+    ("ドライブクロー",       "ドライブクロー",         "OSP ドライブクロー"),
+    ("ドライブビーバー",     "ドライブビーバー",       "OSP ドライブビーバー"),
+    ("HPシャッドテール",     "HPシャッドテール",       "deps HPシャッドテール"),
+    ("スタッガー",           "スタッガー",             "deps スタッガー バス"),
+    ("エスケープツイン",     "エスケープツイン",       "deps エスケープツイン"),
+    ("バグアンツ",           "バグアンツ",             "deps バグアンツ"),
+    ("ネドリグ",             "ネドリグ",               "ネドリグ ワーム"),
+    # ── ハードルアー ──
+    ("ルドラ",               "OSPルドラ",              "OSP ルドラ バス"),
+    ("ハイカット",           "OSPハイカット",          "OSP ハイカット"),
+    ("ブリッツ",             "ブリッツ",               "OSP ブリッツ"),
+    ("ブルシューター",       "ブルシューター",         "deps ブルシューター"),
+    ("スタッガリングスイマー", "スタッガリングスイマー", "deps スタッガリングスイマー"),
+    ("TN60",                 "TN60",                   "ジャッカル TN60"),
+    ("TN70",                 "TN70",                   "ジャッカル TN70"),
+    ("ソウルシャッド",       "ソウルシャッド",         "ジャッカル ソウルシャッド"),
+    ("ポップX",             "ポップX",               "メガバス ポップX"),
+    ("アイウェーバー",       "アイウェーバー",         "メガバス アイウェーバー"),
+    ("マッドペッパー",       "マッドペッパー",         "ダイワ マッドペッパー"),
+    ("スラッゴー",           "スラッゴー",             "スラッゴー バス"),
+    # ── リール ──
+    ("ステラ",               "ステラ",                 "シマノ ステラ バス"),
+    ("ツインパワー",         "ツインパワー",           "シマノ ツインパワー"),
+    ("ヴァンキッシュ",       "ヴァンキッシュ",         "シマノ ヴァンキッシュ"),
+    ("アンタレス",           "アンタレス",             "シマノ アンタレス"),
+    ("カルカッタコンクエスト", "カルカッタコンクエスト", "シマノ カルカッタコンクエスト"),
+    ("メタニウム",           "メタニウム",             "シマノ メタニウム"),
+    ("アルデバラン",         "アルデバラン",           "シマノ アルデバラン"),
+    ("スコーピオン",         "スコーピオン リール",    "シマノ スコーピオン リール"),
+    ("ジリオン",             "ジリオン",               "ダイワ ジリオン"),
+    ("タトゥーラ",           "タトゥーラ",             "ダイワ タトゥーラ"),
+    ("アルファス",           "アルファス",             "ダイワ アルファス"),
+    ("スティーズ",           "スティーズ リール",      "ダイワ スティーズ リール"),
+    ("イグジスト",           "イグジスト",             "ダイワ イグジスト"),
+    ("セルテート",           "セルテート",             "ダイワ セルテート"),
+    # ── ロッド ──
+    ("ポイズングロリアス",   "ポイズングロリアス",     "シマノ ポイズングロリアス"),
+    ("ポイズンアドレナ",     "ポイズンアドレナ",       "シマノ ポイズンアドレナ"),
+    ("エクスプライド",       "エクスプライド",         "シマノ エクスプライド"),
+    ("ゾディアス",           "ゾディアス",             "シマノ ゾディアス"),
+    ("リベリオン",           "リベリオン",             "ダイワ リベリオン"),
+    ("ブラックレーベル",     "ブラックレーベル",       "ダイワ ブラックレーベル"),
+    ("ハートランド",         "ハートランド",           "ダイワ ハートランド"),
+    ("エアエッジ",           "エアエッジ",             "ダイワ エアエッジ"),
+    ("ファンタジスタ",       "ファンタジスタ",         "アブガルシア ファンタジスタ"),
+]
+
+
+def get_amazon_url(amazon_query):
+    """Amazon検索URLを生成（アソシエイトタグなし・後で追加可能）"""
+    q = urllib.parse.quote(amazon_query)
+    return f"https://www.amazon.co.jp/s?k={q}"
+
+
+def extract_tackle(text):
+    """テキストからタックル名を抽出してAmazonリンク付きリストを返す"""
+    if not text:
+        return []
+    found = []
+    seen = set()
+    for keyword, display_name, amazon_query in TACKLE_DICT:
+        if keyword in text and display_name not in seen:
+            found.append({
+                "name": display_name,
+                "url":  get_amazon_url(amazon_query),
+            })
+            seen.add(display_name)
+    return found
+
+
+def get_hit_lures(days=7, top_n=10):
+    """RSS釣果情報から直近N日間のヒットルアーをランキング形式で返す"""
+    from collections import Counter
+    counter = Counter()
+    # 全フィールドのRSSを走査
+    for field_shops in BOAT_SHOP_RSS.values():
+        for shop in field_shops:
+            rss_url = shop.get("url")
+            if not rss_url:
+                continue
+            result = fetch_rss(shop["name"], rss_url)
+            for item in result.get("items", []):
+                text = item.get("title", "") + " " + item.get("summary", "")
+                for keyword, display_name, amazon_query in TACKLE_DICT:
+                    if keyword in text:
+                        counter[display_name] += 1
+    # ランキング生成
+    ranking = []
+    for name, cnt in counter.most_common(top_n):
+        # TACKLE_DICTからamazon_queryを逆引き
+        amazon_query = next(
+            (aq for kw, dn, aq in TACKLE_DICT if dn == name), name
+        )
+        ranking.append({
+            "name":  name,
+            "count": cnt,
+            "url":   get_amazon_url(amazon_query),
+        })
+    return ranking
+
 FIELDS = [
     "霞ヶ浦 バス釣り",
     "琵琶湖 バス釣り",
@@ -261,12 +373,14 @@ def fetch_videos(query, max_results=6):
         for item in items:
             snippet = item["snippet"]
             video_id = item["id"]["videoId"]
+            title_text = snippet["title"] + " " + snippet.get("description", "")
             videos.append({
                 "title": snippet["title"],
                 "thumbnail": snippet["thumbnails"]["medium"]["url"],
                 "channel": snippet["channelTitle"],
                 "published_at": snippet["publishedAt"][:10],
                 "url": f"https://www.youtube.com/watch?v={video_id}",
+                "tackle": extract_tackle(title_text),
             })
         # オンメモリキャッシュに保存
         _youtube_cache[query] = {"data": videos, "ts": now}
@@ -447,6 +561,12 @@ def api_field(field_name):
 def api_fields():
     """Ajax 用エンドポイント：フィールドデータを JSON で返す（キャッシュ活用）"""
     return jsonify(build_field_data())
+
+
+@app.route("/api/hit-lures")
+def api_hit_lures():
+    """今週のヒットルアーランキングをJSONで返す"""
+    return jsonify(get_hit_lures())
 
 
 @app.route("/stats")
