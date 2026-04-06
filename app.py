@@ -52,13 +52,12 @@ class PgConn:
 
 
 def get_db():
-    url = urllib.parse.urlparse(DATABASE_URL)
     conn = psycopg2.connect(
-        host=url.hostname,
-        port=url.port or 5432,
-        database=url.path[1:],
-        user=url.username,
-        password=url.password,
+        host=os.environ.get("DB_HOST"),
+        port=int(os.environ.get("DB_PORT", "5432")),
+        dbname=os.environ.get("DB_NAME", "postgres"),
+        user=os.environ.get("DB_USER"),
+        password=os.environ.get("DB_PASSWORD"),
         sslmode='require'
     )
     return PgConn(conn)
