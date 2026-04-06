@@ -163,10 +163,12 @@ TACKLE_DICT = [
 ]
 
 
+AMAZON_ASSOCIATE_TAG = "booma01-22"
+
 def get_amazon_url(amazon_query):
-    """Amazon検索URLを生成（アソシエイトタグなし・後で追加可能）"""
+    """Amazon検索URLを生成（アソシエイトタグ付き）"""
     q = urllib.parse.quote(amazon_query)
-    return f"https://www.amazon.co.jp/s?k={q}"
+    return f"https://www.amazon.co.jp/s?k={q}&tag={AMAZON_ASSOCIATE_TAG}"
 
 
 def extract_tackle(text):
