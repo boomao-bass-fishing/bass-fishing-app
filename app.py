@@ -97,6 +97,16 @@ def init_db():
                 count INTEGER NOT NULL DEFAULT 0
             )
         """)
+        # ユーザー追加タックル辞書
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS tackle_dict (
+                id           SERIAL PRIMARY KEY,
+                keyword      TEXT NOT NULL UNIQUE,
+                display_name TEXT NOT NULL,
+                amazon_query TEXT NOT NULL,
+                created_at   TEXT NOT NULL
+            )
+        """)
 
 
 init_db()
@@ -205,13 +215,28 @@ def get_amazon_url(amazon_query):
     return f"https://www.amazon.co.jp/s?k={q}&tag={AMAZON_ASSOCIATE_TAG}"
 
 
+def get_full_tackle_dict():
+    """コードのTACKLE_DICT ＋ DBのユーザー追加分をマージして返す"""
+    merged = list(TACKLE_DICT)
+    try:
+        with get_db() as conn:
+            rows = conn.execute(
+                "SELECT keyword, display_name, amazon_query FROM tackle_dict ORDER BY id"
+            ).fetchall()
+            for row in rows:
+                merged.append((row["keyword"], row["display_name"], row["amazon_query"]))
+    except Exception:
+        pass
+    return merged
+
+
 def extract_tackle(text):
     """テキストからタックル名を抽出してAmazonリンク付きリストを返す"""
     if not text:
         return []
     found = []
     seen = set()
-    for keyword, display_name, amazon_query in TACKLE_DICT:
+    for keyword, display_name, amazon_query in get_full_tackle_dict():
         if keyword in text and display_name not in seen:
             found.append({
                 "name": display_name,
@@ -224,6 +249,7 @@ def extract_tackle(text):
 def get_hit_lures(days=7, top_n=10):
     """RSS釣果情報から直近N日間のヒットルアーをランキング形式で返す"""
     from collections import Counter
+    full_dict = get_full_tackle_dict()
     counter = Counter()
     # 全フィールドのRSSを走査
     for field_shops in BOAT_SHOP_RSS.values():
@@ -234,15 +260,14 @@ def get_hit_lures(days=7, top_n=10):
             result = fetch_rss(shop["name"], rss_url)
             for item in result.get("items", []):
                 text = item.get("title", "") + " " + item.get("summary", "")
-                for keyword, display_name, amazon_query in TACKLE_DICT:
+                for keyword, display_name, amazon_query in full_dict:
                     if keyword in text:
                         counter[display_name] += 1
     # ランキング生成
     ranking = []
     for name, cnt in counter.most_common(top_n):
-        # TACKLE_DICTからamazon_queryを逆引き
         amazon_query = next(
-            (aq for kw, dn, aq in TACKLE_DICT if dn == name), name
+            (aq for kw, dn, aq in full_dict if dn == name), name
         )
         ranking.append({
             "name":  name,
@@ -630,6 +655,49 @@ def api_fields():
 def api_hit_lures():
     """今週のヒットルアーランキングをJSONで返す"""
     return jsonify(get_hit_lures())
+
+
+@app.route("/admin/tackle")
+def admin_tackle():
+    """タックル辞書管理ページ"""
+    with get_db() as conn:
+        custom_entries = conn.execute(
+            "SELECT id, keyword, display_name, amazon_query, created_at FROM tackle_dict ORDER BY id DESC"
+        ).fetchall()
+    return render_template("admin_tackle.html",
+                           builtin_count=len(TACKLE_DICT),
+                           custom_entries=custom_entries)
+
+
+@app.route("/admin/tackle/add", methods=["POST"])
+def admin_tackle_add():
+    """タックル辞書にエントリを追加"""
+    keyword      = request.form.get("keyword", "").strip()
+    display_name = request.form.get("display_name", "").strip()
+    amazon_query = request.form.get("amazon_query", "").strip()
+    if keyword and display_name and amazon_query:
+        created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        try:
+            with get_db() as conn:
+                conn.execute(
+                    """INSERT INTO tackle_dict (keyword, display_name, amazon_query, created_at)
+                       VALUES (?, ?, ?, ?)
+                       ON CONFLICT(keyword) DO UPDATE SET
+                         display_name=excluded.display_name,
+                         amazon_query=excluded.amazon_query""",
+                    (keyword, display_name, amazon_query, created_at)
+                )
+        except Exception as e:
+            print(f"tackle add error: {e}")
+    return redirect(url_for("admin_tackle"))
+
+
+@app.route("/admin/tackle/delete/<int:entry_id>", methods=["POST"])
+def admin_tackle_delete(entry_id):
+    """タックル辞書のエントリを削除"""
+    with get_db() as conn:
+        conn.execute("DELETE FROM tackle_dict WHERE id = ?", (entry_id,))
+    return redirect(url_for("admin_tackle"))
 
 
 @app.route("/api/tweet-hit-lures", methods=["POST"])

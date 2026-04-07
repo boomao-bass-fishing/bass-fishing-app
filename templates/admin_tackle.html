@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>タックル辞書管理 | バス釣りダッシュボード</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: #0d1b2a;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+    header {
+      background: linear-gradient(135deg, #1a3a5c, #0d6b8a);
+      padding: 20px 32px;
+      border-bottom: 3px solid #00b4d8;
+    }
+    header h1 { font-size: 1.5rem; color: #fff; }
+    header a { color: #48cae4; font-size: 0.85rem; text-decoration: none; margin-top: 6px; display: inline-block; }
+    main { max-width: 800px; margin: 40px auto; padding: 0 24px; }
+    h2 {
+      font-size: 1.1rem;
+      color: #00b4d8;
+      border-left: 4px solid #00b4d8;
+      padding-left: 12px;
+      margin-bottom: 16px;
+    }
+    .card {
+      background: #132233;
+      border: 1px solid #1e3a50;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+    .info-bar {
+      font-size: 0.88rem;
+      color: #7eb8d4;
+      margin-bottom: 20px;
+    }
+    /* 追加フォーム */
+    .add-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 10px;
+      align-items: end;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.78rem;
+      color: #7eb8d4;
+      margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%;
+      background: #0d1b2a;
+      border: 1px solid #2a4a60;
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #e0e0e0;
+      font-size: 0.9rem;
+    }
+    .form-group input:focus { outline: none; border-color: #00b4d8; }
+    .btn-add {
+      background: #00b4d8;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-add:hover { background: #48cae4; }
+    /* テーブル */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    th {
+      text-align: left;
+      padding: 10px 12px;
+      color: #7eb8d4;
+      border-bottom: 1px solid #1e3a50;
+      font-weight: 600;
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #1a3040;
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #162d3f; }
+    .tag-keyword {
+      background: #0d3a50;
+      color: #48cae4;
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 0.82rem;
+    }
+    .amazon-link {
+      color: #f5a623;
+      text-decoration: none;
+      font-size: 0.82rem;
+    }
+    .amazon-link:hover { text-decoration: underline; }
+    .btn-del {
+      background: transparent;
+      border: 1px solid #c0392b;
+      color: #e74c3c;
+      border-radius: 6px;
+      padding: 4px 12px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .btn-del:hover { background: #c0392b; color: #fff; }
+    .empty { color: #3a6278; font-size: 0.9rem; padding: 16px 0; }
+    .builtin-note {
+      font-size: 0.82rem;
+      color: #3a6278;
+      margin-top: 12px;
+    }
+    @media (max-width: 600px) {
+      .add-form { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎣 タックル辞書管理</h1>
+    <a href="/">← トップページへ戻る</a>
+  </header>
+
+  <main>
+    <!-- 追加フォーム -->
+    <div class="card">
+      <h2>➕ 新しいタックルを追加</h2>
+      <p class="info-bar">登録したキーワードがRSS・動画タイトルに含まれていると、アフィリエイトリンクが自動表示されます。</p>
+      <form action="/admin/tackle/add" method="POST">
+        <div class="add-form">
+          <div class="form-group">
+            <label>検索キーワード（日本語）</label>
+            <input type="text" name="keyword" placeholder="例: ハイピッチャー" required>
+          </div>
+          <div class="form-group">
+            <label>表示名</label>
+            <input type="text" name="display_name" placeholder="例: ハイピッチャー" required>
+          </div>
+          <div class="form-group">
+            <label>Amazon検索ワード</label>
+            <input type="text" name="amazon_query" placeholder="例: ジャッカル ハイピッチャー" required>
+          </div>
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn-add">追加</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- ユーザー追加分 -->
+    <div class="card">
+      <h2>📝 追加済みタックル（{{ custom_entries | length }}件）</h2>
+      {% if custom_entries %}
+      <table>
+        <thead>
+          <tr>
+            <th>キーワード</th>
+            <th>表示名</th>
+            <th>Amazon検索</th>
+            <th>追加日</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in custom_entries %}
+          <tr>
+            <td><span class="tag-keyword">{{ entry.keyword }}</span></td>
+            <td>{{ entry.display_name }}</td>
+            <td>
+              <a class="amazon-link"
+                 href="https://www.amazon.co.jp/s?k={{ entry.amazon_query | urlencode }}&tag=booma01-22"
+                 target="_blank">
+                🛒 {{ entry.amazon_query }}
+              </a>
+            </td>
+            <td style="color:#3a6278; font-size:0.8rem;">{{ entry.created_at[:10] }}</td>
+            <td>
+              <form action="/admin/tackle/delete/{{ entry.id }}" method="POST"
+                    onsubmit="return confirm('「{{ entry.display_name }}」を削除しますか？')">
+                <button type="submit" class="btn-del">削除</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="empty">まだ追加されていません。上のフォームからタックルを追加してください。</p>
+      {% endif %}
+      <p class="builtin-note">※ コードに組み込み済みの {{ builtin_count }} 件は別途管理されています。</p>
+    </div>
+  </main>
+</body>
+</html>
