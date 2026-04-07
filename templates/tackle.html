@@ -19,17 +19,7 @@
     "name": "バス釣りおすすめタックル一覧",
     "description": "バス釣りで実績のあるルアー・リール・ロッドの一覧",
     "url": "https://bass-fishing-app-1.onrender.com/tackle",
-    "numberOfItems": {{ total }},
-    "itemListElement": [
-      {% for cat in categories %}{% for item in cat.items %}{% set ns = namespace() %}{% set ns.i = loop.index %}
-      {
-        "@type": "ListItem",
-        "position": {{ loop.index }},
-        "name": "{{ item.display_name }}",
-        "url": "{{ item.url }}"
-      }{% if not loop.last %},{% endif %}
-      {% endfor %}{% if not loop.last %},{% endif %}{% endfor %}
-    ]
+    "numberOfItems": {{ total }}
   }
   </script>
 
