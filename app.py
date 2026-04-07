@@ -406,9 +406,11 @@ BOAT_SHOP_RSS = {
 # RSS は 30 分キャッシュ
 YOUTUBE_CACHE_TTL = 6 * 60 * 60   # 6時間（秒）
 RSS_CACHE_TTL     = 30 * 60        # 30分（秒）
+TACKLE_CACHE_TTL  = 10 * 60        # 10分（秒）
 
 _youtube_cache: dict = {}   # {"query": {"data": [...], "ts": float}}
 _rss_cache: dict     = {}   # {"url":   {"data": {...}, "ts": float}}
+_tackle_cache: dict  = {}   # {"db_rows": {"data": [...], "ts": float}}
 
 
 def fetch_videos(query, max_results=6):
@@ -801,13 +803,19 @@ def tackle_list():
         ("ロッド",               41, None),
     ]
     builtin = TACKLE_DICT
-    try:
-        with get_db() as conn:
-            db_rows = conn.execute(
-                "SELECT keyword, display_name, amazon_query FROM tackle_dict ORDER BY id"
-            ).fetchall()
-    except Exception:
-        db_rows = []
+    now = time.time()
+    cached = _tackle_cache.get("db_rows")
+    if cached and (now - cached["ts"]) < TACKLE_CACHE_TTL:
+        db_rows = cached["data"]
+    else:
+        try:
+            with get_db() as conn:
+                db_rows = conn.execute(
+                    "SELECT keyword, display_name, amazon_query FROM tackle_dict ORDER BY id"
+                ).fetchall()
+            _tackle_cache["db_rows"] = {"data": db_rows, "ts": now}
+        except Exception:
+            db_rows = []
 
     categories = []
     for label, start, end in BUILTIN_CATEGORIES:
