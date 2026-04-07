@@ -19,6 +19,7 @@ load_dotenv()
 app = Flask(__name__)
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
+TACKLE_API_KEY = os.environ.get("TACKLE_API_KEY", "")
 
 cloudinary.config(cloudinary_url=os.environ.get("CLOUDINARY_URL"))
 
@@ -698,6 +699,55 @@ def admin_tackle_delete(entry_id):
     with get_db() as conn:
         conn.execute("DELETE FROM tackle_dict WHERE id = ?", (entry_id,))
     return redirect(url_for("admin_tackle"))
+
+
+@app.route("/api/tackle/keywords")
+def api_tackle_keywords():
+    """登録済みキーワード一覧を返す（重複チェック用）"""
+    builtin = [kw for kw, dn, aq in TACKLE_DICT]
+    try:
+        with get_db() as conn:
+            rows = conn.execute("SELECT keyword FROM tackle_dict").fetchall()
+            custom = [r["keyword"] for r in rows]
+    except Exception:
+        custom = []
+    return jsonify({"builtin": builtin, "custom": custom, "all": builtin + custom})
+
+
+@app.route("/api/tackle/auto-add", methods=["POST"])
+def api_tackle_auto_add():
+    """スケジュールタスクから新キーワードを一括追加するAPI"""
+    # APIキー認証
+    key = request.headers.get("X-Tackle-Key", "")
+    if not TACKLE_API_KEY or key != TACKLE_API_KEY:
+        return jsonify({"error": "unauthorized"}), 401
+
+    entries = request.json  # [{keyword, display_name, amazon_query}, ...]
+    if not entries or not isinstance(entries, list):
+        return jsonify({"error": "invalid body"}), 400
+
+    added = []
+    skipped = []
+    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    for e in entries:
+        kw = e.get("keyword", "").strip()
+        dn = e.get("display_name", "").strip()
+        aq = e.get("amazon_query", "").strip()
+        if not (kw and dn and aq):
+            skipped.append(kw)
+            continue
+        try:
+            with get_db() as conn:
+                conn.execute(
+                    """INSERT INTO tackle_dict (keyword, display_name, amazon_query, created_at)
+                       VALUES (?, ?, ?, ?)
+                       ON CONFLICT(keyword) DO NOTHING""",
+                    (kw, dn, aq, created_at)
+                )
+            added.append(kw)
+        except Exception as e:
+            skipped.append(kw)
+    return jsonify({"added": added, "skipped": skipped})
 
 
 @app.route("/api/tweet-hit-lures", methods=["POST"])
