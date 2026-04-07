@@ -125,8 +125,57 @@
       border-top: 1px solid #1b2d3e;
       margin-top: 48px;
     }
+    .section-title {
+      font-size: 1.2rem;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .section-divider {
+      border: none;
+      border-top: 1px solid #1e3a50;
+      margin: 48px 0 40px;
+    }
+    /* フィールドタブ */
+    .field-section { margin-bottom: 0; }
+    .field-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .field-tab-btn {
+      background: #132233;
+      border: 1px solid #1e3a50;
+      color: #7eb8d4;
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .field-tab-btn:hover { border-color: #00b4d8; color: #00b4d8; }
+    .field-tab-btn.active { background: #00b4d8; color: #0d1b2a; border-color: #00b4d8; font-weight: 700; }
+    .field-desc {
+      font-size: 0.88rem;
+      color: #7eb8d4;
+      margin-bottom: 16px;
+      line-height: 1.7;
+      background: #132233;
+      border-left: 3px solid #00b4d8;
+      padding: 10px 14px;
+      border-radius: 0 8px 8px 0;
+    }
+    .field-card { border-color: #1a3a50; }
+    .field-card:hover { border-color: #00b4d8; }
+    .tackle-reason {
+      font-size: 0.78rem;
+      color: #7eb8d4;
+      line-height: 1.5;
+    }
     @media (max-width: 480px) {
       .tackle-grid { grid-template-columns: repeat(2, 1fr); }
+      .field-tabs { gap: 6px; }
+      .field-tab-btn { font-size: 0.78rem; padding: 5px 12px; }
     }
   </style>
 </head>
@@ -143,6 +192,37 @@
       <p class="disclaimer">※ 当サイトはAmazonアソシエイト・プログラムの参加者です。リンクを経由して購入された場合、当サイトに紹介料が支払われることがあります。</p>
     </div>
 
+    <!-- フィールド別おすすめセクション -->
+    <section class="field-section">
+      <h2 class="section-title">📍 フィールド別おすすめタックル</h2>
+      <div class="field-tabs">
+        {% for tab in field_tabs %}
+        <button class="field-tab-btn{% if loop.first %} active{% endif %}"
+                onclick="switchField(this, 'field-{{ loop.index }}')">
+          {{ tab.name }}
+        </button>
+        {% endfor %}
+      </div>
+      {% for tab in field_tabs %}
+      <div class="field-content" id="field-{{ loop.index }}"{% if not loop.first %} style="display:none"{% endif %}>
+        <p class="field-desc">{{ tab.desc }}</p>
+        <div class="tackle-grid field-grid">
+          {% for item in tab.products %}
+          <div class="tackle-card field-card">
+            <div class="tackle-name">{{ item.display_name }}</div>
+            <div class="tackle-reason">{{ item.reason }}</div>
+            <a class="amazon-btn" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">Amazonで見る</a>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- 全アイテム -->
+    <h2 class="section-title">🗂 全タックル一覧</h2>
     {% for cat in categories %}
     <section class="category-section">
       <h2>{{ cat.label }}（{{ cat.products | length }}件）</h2>
@@ -157,6 +237,15 @@
     </section>
     {% endfor %}
   </main>
+
+  <script>
+    function switchField(btn, targetId) {
+      document.querySelectorAll('.field-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.field-content').forEach(c => c.style.display = 'none');
+      btn.classList.add('active');
+      document.getElementById(targetId).style.display = 'block';
+    }
+  </script>
 
   <footer>
     Powered by YouTube Data API v3 ｜ <a href="/" style="color:#3a6278; text-decoration:none;">バス釣り釣果ダッシュボード</a>
