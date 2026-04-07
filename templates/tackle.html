@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>おすすめタックル一覧 | バス釣り釣果ダッシュボード</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: #0d1b2a;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+    header {
+      background: linear-gradient(135deg, #1a3a5c, #0d6b8a);
+      padding: 20px 32px;
+      border-bottom: 3px solid #00b4d8;
+    }
+    header h1 { font-size: 1.5rem; color: #fff; }
+    header p { color: #90e0ef; font-size: 0.85rem; margin-top: 6px; }
+    header a {
+      color: #48cae4;
+      font-size: 0.85rem;
+      text-decoration: none;
+      margin-top: 8px;
+      display: inline-block;
+    }
+    header a:hover { text-decoration: underline; }
+    main {
+      max-width: 1200px;
+      margin: 32px auto;
+      padding: 0 24px;
+    }
+    .count-bar {
+      font-size: 0.88rem;
+      color: #7eb8d4;
+      margin-bottom: 24px;
+    }
+    .count-bar strong { color: #00b4d8; }
+    .disclaimer {
+      background: #132233;
+      border: 1px solid #1e3a50;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.82rem;
+      color: #7eb8d4;
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+    .tackle-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .tackle-card {
+      background: #132233;
+      border: 1px solid #1e3a50;
+      border-radius: 12px;
+      padding: 18px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+    .tackle-card:hover {
+      border-color: #00b4d8;
+      transform: translateY(-2px);
+    }
+    .tackle-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #e0e0e0;
+      line-height: 1.4;
+    }
+    .amazon-btn {
+      display: block;
+      background: #f5a623;
+      color: #0d1b2a;
+      text-decoration: none;
+      text-align: center;
+      border-radius: 8px;
+      padding: 8px 0;
+      font-size: 0.82rem;
+      font-weight: 700;
+      transition: background 0.2s;
+      margin-top: auto;
+    }
+    .amazon-btn:hover { background: #f7bc55; }
+    .amazon-btn::before { content: "🛒 "; }
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.78rem;
+      color: #3a6278;
+      border-top: 1px solid #1b2d3e;
+      margin-top: 48px;
+    }
+    @media (max-width: 480px) {
+      .tackle-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎣 おすすめタックル一覧</h1>
+    <p>バス釣りで実績のあるルアー・リール・ロッドをまとめました</p>
+    <a href="/">← トップページへ戻る</a>
+  </header>
+
+  <main>
+    <p class="count-bar">全 <strong>{{ total }}</strong> アイテム</p>
+    <p class="disclaimer">
+      ※ 当サイトはAmazonアソシエイト・プログラムの参加者です。リンクを経由して購入された場合、当サイトに紹介料が支払われることがあります。商品の価格・在庫はAmazonサイトをご確認ください。
+    </p>
+
+    <div class="tackle-grid">
+      {% for item in items %}
+      <div class="tackle-card">
+        <div class="tackle-name">{{ item.display_name }}</div>
+        <a class="amazon-btn" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">Amazonで見る</a>
+      </div>
+      {% endfor %}
+    </div>
+  </main>
+
+  <footer>
+    Powered by YouTube Data API v3 ｜ <a href="/" style="color:#3a6278; text-decoration:none;">バス釣り釣果ダッシュボード</a>
+  </footer>
+</body>
+</html>

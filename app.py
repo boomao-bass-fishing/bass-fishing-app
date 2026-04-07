@@ -491,11 +491,13 @@ def fetch_rss(shop_name, rss_url, website=None, max_items=5):
             published = ""
             if hasattr(entry, "published"):
                 published = entry.published[:10] if len(entry.published) >= 10 else entry.published
+            title_text = entry.get("title", "") + " " + entry.get("summary", "")
             items.append({
                 "title": entry.get("title", "(タイトルなし)"),
                 "url": entry.get("link", "#"),
                 "published": published,
                 "summary": entry.get("summary", ""),
+                "tackle": extract_tackle(title_text),
             })
         result = {"name": shop_name, "items": items, "error": None, "website": website}
         _rss_cache[rss_url] = {"data": result, "ts": now}
@@ -768,6 +770,16 @@ def api_tweet_hit_lures():
 
     ok = post_to_x(tweet_text)
     return jsonify({"ok": ok, "tweet": tweet_text})
+
+
+@app.route("/tackle")
+def tackle_list():
+    """タックル一覧ページ（アフィリエイトリンク付き）"""
+    items = [
+        {"display_name": dn, "url": get_amazon_url(aq)}
+        for kw, dn, aq in get_full_tackle_dict()
+    ]
+    return render_template("tackle.html", items=items, total=len(items))
 
 
 @app.route("/stats")

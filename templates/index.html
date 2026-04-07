@@ -581,6 +581,9 @@
   <header>
     <h1>🎣 バス釣り釣果ダッシュボード</h1>
     <p>全国主要フィールドの最新YouTube動画</p>
+    <nav>
+      <a href="/tackle">🛒 おすすめタックル一覧</a>
+    </nav>
   </header>
 
   <main>
@@ -777,6 +780,13 @@
             <div class="rss-item">
               <a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.title }}</a>
               <span class="rss-date">{{ item.published }}</span>
+              {% if item.tackle %}
+              <div class="tackle-list">
+                {% for t in item.tackle %}
+                <a class="tackle-link" href="{{ t.url }}" target="_blank" rel="noopener noreferrer">{{ t.name }}</a>
+                {% endfor %}
+              </div>
+              {% endif %}
             </div>
             {% endfor %}
           {% elif shop.website %}
@@ -953,6 +963,7 @@
             `<div class="rss-item">
               <a href="${item.url}" target="_blank" rel="noopener noreferrer">${item.title}</a>
               <span class="rss-date">${item.published}</span>
+              ${buildTackleLinks(item.tackle)}
             </div>`
           ).join('');
         } else if (shop.website) {
