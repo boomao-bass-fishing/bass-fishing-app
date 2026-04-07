@@ -231,10 +231,15 @@ def get_amazon_url(amazon_query):
     q = urllib.parse.quote(amazon_query)
     return f"https://www.amazon.co.jp/s?k={q}&tag={AMAZON_ASSOCIATE_TAG}"
 
+RAKUTEN_AFFILIATE_ID = "529f1820.9a87beac.529f1821.85f5933d"
+
 def get_rakuten_url(amazon_query):
-    """楽天市場検索URLを生成"""
-    q = urllib.parse.quote(amazon_query)
-    return f"https://search.rakuten.co.jp/search/mall/{q}/"
+    """楽天市場検索URLをアフィリエイトタグ付きで生成"""
+    target = urllib.parse.quote(
+        f"https://search.rakuten.co.jp/search/mall/{urllib.parse.quote(amazon_query)}/",
+        safe=""
+    )
+    return f"https://hb.afl.rakuten.co.jp/ichiba/{RAKUTEN_AFFILIATE_ID}/?pc={target}"
 
 def detect_brand(amazon_query):
     """amazon_queryからブランド名を判定"""
