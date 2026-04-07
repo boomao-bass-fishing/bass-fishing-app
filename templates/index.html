@@ -375,6 +375,28 @@
       display: flex;
       justify-content: flex-end;
     }
+    #lure-suggestions {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .lure-suggest-label {
+      width: 100%;
+      font-size: 0.75rem;
+      color: #7eb8d4;
+    }
+    .lure-suggest-link {
+      display: inline-block;
+      background: #f5a623;
+      color: #0d1b2a;
+      text-decoration: none;
+      border-radius: 6px;
+      padding: 4px 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .lure-suggest-link:hover { background: #f7bc55; }
 
     .btn-post {
       background: linear-gradient(135deg, #0077b6, #00b4d8);
@@ -623,7 +645,8 @@
         </div>
         <div class="form-group">
           <label for="lure">使用ルアー</label>
-          <input type="text" id="lure" name="lure" placeholder="例: スピナーベイト">
+          <input type="text" id="lure" name="lure" placeholder="例: スピナーベイト" autocomplete="off">
+          <div id="lure-suggestions"></div>
         </div>
         <div class="form-group">
           <label for="fishing_date">釣行日</label>
@@ -818,6 +841,27 @@
   </footer>
 
 <script>
+  // ── ルアー入力サジェスト（アフィリエイトリンク） ────────────────────────────
+  const TACKLE_DATA = {{ tackle_js | safe }};
+  document.addEventListener('DOMContentLoaded', function () {
+    const lureInput = document.getElementById('lure');
+    const panel     = document.getElementById('lure-suggestions');
+    if (!lureInput || !panel) return;
+    lureInput.addEventListener('input', function () {
+      const val = this.value.trim();
+      panel.innerHTML = '';
+      if (val.length < 1) return;
+      const matches = TACKLE_DATA.filter(t =>
+        t.kw.includes(val) || val.includes(t.kw)
+      ).slice(0, 6);
+      if (matches.length === 0) return;
+      panel.innerHTML = '<div class="lure-suggest-label">🛒 Amazonで見る</div>' +
+        matches.map(t =>
+          `<a class="lure-suggest-link" href="${t.url}" target="_blank" rel="noopener noreferrer">${t.name}</a>`
+        ).join('');
+    });
+  });
+
   // ── フィールド選択タブ（動画の遅延読み込み付き）────────────────────────────
   async function selectField(fieldName, btn) {
     // タブボタンのactive切り替え

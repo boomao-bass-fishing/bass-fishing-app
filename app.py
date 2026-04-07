@@ -231,6 +231,35 @@ def get_amazon_url(amazon_query):
     q = urllib.parse.quote(amazon_query)
     return f"https://www.amazon.co.jp/s?k={q}&tag={AMAZON_ASSOCIATE_TAG}"
 
+def get_rakuten_url(amazon_query):
+    """楽天市場検索URLを生成"""
+    q = urllib.parse.quote(amazon_query)
+    return f"https://search.rakuten.co.jp/search/mall/{q}/"
+
+def detect_brand(amazon_query):
+    """amazon_queryからブランド名を判定"""
+    if "シマノ" in amazon_query: return "シマノ"
+    if "ダイワ" in amazon_query:  return "ダイワ"
+    if "ゲーリーヤマモト" in amazon_query: return "ゲーリーヤマモト"
+    if "deps" in amazon_query:    return "deps"
+    if "ジャッカル" in amazon_query: return "ジャッカル"
+    if "OSP" in amazon_query:     return "OSP"
+    if "メガバス" in amazon_query: return "メガバス"
+    if "レイドジャパン" in amazon_query: return "レイドジャパン"
+    if "イマカツ" in amazon_query: return "イマカツ"
+    if "ガンクラフト" in amazon_query: return "ガンクラフト"
+    if "一誠" in amazon_query:    return "一誠"
+    return "その他"
+
+def make_product(display_name, amazon_query):
+    """アフィリエイトリンク付き商品dictを生成"""
+    return {
+        "display_name": display_name,
+        "url":          get_amazon_url(amazon_query),
+        "rakuten_url":  get_rakuten_url(amazon_query),
+        "brand":        detect_brand(amazon_query),
+    }
+
 
 def get_full_tackle_dict():
     """コードのTACKLE_DICT ＋ DBのユーザー追加分をマージして返す"""
@@ -822,12 +851,12 @@ def tackle_list():
         chunk = builtin[start:end]
         categories.append({
             "label": label,
-            "products": [{"display_name": dn, "url": get_amazon_url(aq)} for _, dn, aq in chunk],
+            "products": [make_product(dn, aq) for _, dn, aq in chunk],
         })
     if db_rows:
         categories.append({
             "label": "その他・注目ルアー",
-            "products": [{"display_name": r["display_name"], "url": get_amazon_url(r["amazon_query"])} for r in db_rows],
+            "products": [make_product(r["display_name"], r["amazon_query"]) for r in db_rows],
         })
 
     total = sum(len(c["products"]) for c in categories)
@@ -879,14 +908,14 @@ def tackle_list():
     ]
 
     # フルタックル辞書でAmazon URLを引く
-    full_dict = {kw: get_amazon_url(aq) for kw, _, aq in get_full_tackle_dict()}
+    full_dict = {kw: aq for kw, _, aq in get_full_tackle_dict()}
     field_tabs = []
     for field_name, field_desc, tackle_list in FIELD_TACKLE_MAP:
         field_tabs.append({
             "name": field_name,
             "desc": field_desc,
             "products": [
-                {"display_name": kw, "url": full_dict.get(kw, get_amazon_url(kw)), "reason": reason}
+                {**make_product(kw, full_dict[kw]), "reason": reason}
                 for kw, reason in tackle_list
                 if kw in full_dict
             ],
@@ -915,7 +944,14 @@ def index():
     # 初回ロード時はYouTube APIを呼ばない（クォータ節約）
     # 動画はタブクリック時に /api/field/<name> で遅延取得
     field_data = build_field_data(include_videos=False)
-    return render_template("index.html", field_data=field_data, catches=catches, visit_stats=visit_stats)
+    # ルアー入力サジェスト用タックルデータ（JSON）
+    tackle_js = json.dumps(
+        [{"kw": kw, "name": dn, "url": get_amazon_url(aq)}
+         for kw, dn, aq in get_full_tackle_dict()],
+        ensure_ascii=False
+    )
+    return render_template("index.html", field_data=field_data, catches=catches,
+                           visit_stats=visit_stats, tackle_js=tackle_js)
 
 
 if __name__ == "__main__":

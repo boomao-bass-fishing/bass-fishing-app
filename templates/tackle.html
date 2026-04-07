@@ -117,6 +117,41 @@
     }
     .amazon-btn:hover { background: #f7bc55; }
     .amazon-btn::before { content: "🛒 "; }
+    .rakuten-btn {
+      display: block;
+      background: #bf0000;
+      color: #fff;
+      text-decoration: none;
+      text-align: center;
+      border-radius: 8px;
+      padding: 7px 0;
+      font-size: 0.78rem;
+      font-weight: 700;
+      transition: background 0.2s;
+    }
+    .rakuten-btn:hover { background: #e00; }
+    .rakuten-btn::before { content: "🔴 "; }
+    .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; }
+    /* ブランドフィルター */
+    .brand-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .brand-btn {
+      background: #132233;
+      border: 1px solid #1e3a50;
+      color: #7eb8d4;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .brand-btn:hover { border-color: #00b4d8; color: #00b4d8; }
+    .brand-btn.active { background: #0d6b8a; color: #fff; border-color: #0d6b8a; font-weight: 700; }
+    .tackle-card.hidden { display: none; }
     footer {
       text-align: center;
       padding: 24px;
@@ -211,7 +246,10 @@
           <div class="tackle-card field-card">
             <div class="tackle-name">{{ item.display_name }}</div>
             <div class="tackle-reason">{{ item.reason }}</div>
-            <a class="amazon-btn" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">Amazonで見る</a>
+            <div class="btn-group">
+              <a class="amazon-btn" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">Amazonで見る</a>
+              <a class="rakuten-btn" href="{{ item.rakuten_url }}" target="_blank" rel="noopener noreferrer">楽天で見る</a>
+            </div>
           </div>
           {% endfor %}
         </div>
@@ -223,14 +261,28 @@
 
     <!-- 全アイテム -->
     <h2 class="section-title">🗂 全タックル一覧</h2>
+    <div class="brand-filter">
+      <button class="brand-btn active" onclick="filterBrand('全て', this)">全て</button>
+      <button class="brand-btn" onclick="filterBrand('シマノ', this)">シマノ</button>
+      <button class="brand-btn" onclick="filterBrand('ダイワ', this)">ダイワ</button>
+      <button class="brand-btn" onclick="filterBrand('ゲーリーヤマモト', this)">ゲーリーヤマモト</button>
+      <button class="brand-btn" onclick="filterBrand('deps', this)">deps</button>
+      <button class="brand-btn" onclick="filterBrand('ジャッカル', this)">ジャッカル</button>
+      <button class="brand-btn" onclick="filterBrand('OSP', this)">OSP</button>
+      <button class="brand-btn" onclick="filterBrand('メガバス', this)">メガバス</button>
+      <button class="brand-btn" onclick="filterBrand('その他', this)">その他</button>
+    </div>
     {% for cat in categories %}
-    <section class="category-section">
+    <section class="category-section" data-cat="{{ cat.label }}">
       <h2>{{ cat.label }}（{{ cat.products | length }}件）</h2>
       <div class="tackle-grid">
         {% for item in cat.products %}
-        <div class="tackle-card">
+        <div class="tackle-card" data-brand="{{ item.brand }}">
           <div class="tackle-name">{{ item.display_name }}</div>
-          <a class="amazon-btn" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">Amazonで見る</a>
+          <div class="btn-group">
+            <a class="amazon-btn" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">Amazonで見る</a>
+            <a class="rakuten-btn" href="{{ item.rakuten_url }}" target="_blank" rel="noopener noreferrer">楽天で見る</a>
+          </div>
         </div>
         {% endfor %}
       </div>
@@ -244,6 +296,14 @@
       document.querySelectorAll('.field-content').forEach(c => c.style.display = 'none');
       btn.classList.add('active');
       document.getElementById(targetId).style.display = 'block';
+    }
+
+    function filterBrand(brand, btn) {
+      document.querySelectorAll('.brand-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tackle-card[data-brand]').forEach(card => {
+        card.classList.toggle('hidden', brand !== '全て' && card.dataset.brand !== brand);
+      });
     }
   </script>
 
