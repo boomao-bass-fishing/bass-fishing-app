@@ -3,7 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>おすすめタックル一覧 | バス釣り釣果ダッシュボード</title>
+  <title>バス釣りおすすめタックル一覧【2026年版】ルアー・リール・ロッド | バス釣り釣果ダッシュボード</title>
+  <meta name="description" content="バス釣りで実績のあるおすすめルアー・リール・ロッドを厳選して紹介。ヤマセンコー・カバースキャット・メタニウムなどワーム・ハードルアー・リール・ロッド全{{ total }}アイテムをAmazonリンク付きで掲載。">
+  <meta name="keywords" content="バス釣り,おすすめルアー,ワーム,ハードルアー,リール,ロッド,タックル,バスフィッシング,釣具">
+  <meta property="og:title" content="バス釣りおすすめタックル一覧【2026年版】">
+  <meta property="og:description" content="バス釣りで実績のあるルアー・リール・ロッドを全{{ total }}アイテム紹介。Amazonで購入できます。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://bass-fishing-app-1.onrender.com/tackle">
+  <link rel="canonical" href="https://bass-fishing-app-1.onrender.com/tackle">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "バス釣りおすすめタックル一覧",
+    "description": "バス釣りで実績のあるルアー・リール・ロッドの一覧",
+    "url": "https://bass-fishing-app-1.onrender.com/tackle",
+    "numberOfItems": {{ total }},
+    "itemListElement": [
+      {% for cat in categories %}{% for item in cat.items %}{% set ns = namespace() %}{% set ns.i = loop.index %}
+      {
+        "@type": "ListItem",
+        "position": {{ loop.index }},
+        "name": "{{ item.display_name }}",
+        "url": "{{ item.url }}"
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}{% if not loop.last %},{% endif %}{% endfor %}
+    ]
+  }
+  </script>
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -32,32 +61,42 @@
       margin: 32px auto;
       padding: 0 24px;
     }
-    .count-bar {
-      font-size: 0.88rem;
-      color: #7eb8d4;
-      margin-bottom: 24px;
-    }
-    .count-bar strong { color: #00b4d8; }
-    .disclaimer {
+    .intro {
       background: #132233;
       border: 1px solid #1e3a50;
-      border-radius: 8px;
-      padding: 12px 16px;
-      font-size: 0.82rem;
-      color: #7eb8d4;
-      margin-bottom: 28px;
-      line-height: 1.6;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 32px;
+      line-height: 1.8;
+      font-size: 0.92rem;
+      color: #b0cfe0;
+    }
+    .intro strong { color: #00b4d8; }
+    .disclaimer {
+      font-size: 0.78rem;
+      color: #4a6e82;
+      margin-top: 12px;
+    }
+    .category-section {
+      margin-bottom: 40px;
+    }
+    .category-section h2 {
+      font-size: 1.1rem;
+      color: #00b4d8;
+      border-left: 4px solid #00b4d8;
+      padding-left: 12px;
+      margin-bottom: 16px;
     }
     .tackle-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
     }
     .tackle-card {
       background: #132233;
       border: 1px solid #1e3a50;
       border-radius: 12px;
-      padding: 18px 16px;
+      padding: 16px 14px;
       display: flex;
       flex-direction: column;
       gap: 12px;
@@ -68,7 +107,7 @@
       transform: translateY(-2px);
     }
     .tackle-name {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 600;
       color: #e0e0e0;
       line-height: 1.4;
@@ -81,7 +120,7 @@
       text-align: center;
       border-radius: 8px;
       padding: 8px 0;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 700;
       transition: background 0.2s;
       margin-top: auto;
@@ -103,25 +142,30 @@
 </head>
 <body>
   <header>
-    <h1>🎣 おすすめタックル一覧</h1>
-    <p>バス釣りで実績のあるルアー・リール・ロッドをまとめました</p>
+    <h1>🎣 バス釣りおすすめタックル一覧</h1>
+    <p>全{{ total }}アイテム — ルアー・リール・ロッドをAmazonリンク付きで紹介</p>
     <a href="/">← トップページへ戻る</a>
   </header>
 
   <main>
-    <p class="count-bar">全 <strong>{{ total }}</strong> アイテム</p>
-    <p class="disclaimer">
-      ※ 当サイトはAmazonアソシエイト・プログラムの参加者です。リンクを経由して購入された場合、当サイトに紹介料が支払われることがあります。商品の価格・在庫はAmazonサイトをご確認ください。
-    </p>
-
-    <div class="tackle-grid">
-      {% for item in items %}
-      <div class="tackle-card">
-        <div class="tackle-name">{{ item.display_name }}</div>
-        <a class="amazon-btn" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">Amazonで見る</a>
-      </div>
-      {% endfor %}
+    <div class="intro">
+      <p>バス釣りで<strong>実績のあるルアー・タックル</strong>をまとめました。ワームは<strong>ヤマセンコー・カバースキャット・フリックシェイク</strong>などゲーリーヤマモト・deps・ジャッカルの定番品、ハードルアーは<strong>TN60・ソウルシャッド・ポップX</strong>など、リールは<strong>メタニウム・アンタレス・タトゥーラ</strong>などシマノ・ダイワの人気機種を掲載しています。釣行前のタックル選びにぜひお役立てください。</p>
+      <p class="disclaimer">※ 当サイトはAmazonアソシエイト・プログラムの参加者です。リンクを経由して購入された場合、当サイトに紹介料が支払われることがあります。</p>
     </div>
+
+    {% for cat in categories %}
+    <section class="category-section">
+      <h2>{{ cat.label }}（{{ cat.items | length }}件）</h2>
+      <div class="tackle-grid">
+        {% for item in cat.items %}
+        <div class="tackle-card">
+          <div class="tackle-name">{{ item.display_name }}</div>
+          <a class="amazon-btn" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">Amazonで見る</a>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endfor %}
   </main>
 
   <footer>

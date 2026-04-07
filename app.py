@@ -775,11 +775,36 @@ def api_tweet_hit_lures():
 @app.route("/tackle")
 def tackle_list():
     """タックル一覧ページ（アフィリエイトリンク付き）"""
-    items = [
-        {"display_name": dn, "url": get_amazon_url(aq)}
-        for kw, dn, aq in get_full_tackle_dict()
+    BUILTIN_CATEGORIES = [
+        ("ワーム・ソフトルアー", 0, 15),
+        ("ハードルアー",         15, 27),
+        ("リール",               27, 41),
+        ("ロッド",               41, None),
     ]
-    return render_template("tackle.html", items=items, total=len(items))
+    builtin = TACKLE_DICT
+    try:
+        with get_db() as conn:
+            db_rows = conn.execute(
+                "SELECT keyword, display_name, amazon_query FROM tackle_dict ORDER BY id"
+            ).fetchall()
+    except Exception:
+        db_rows = []
+
+    categories = []
+    for label, start, end in BUILTIN_CATEGORIES:
+        chunk = builtin[start:end]
+        categories.append({
+            "label": label,
+            "items": [{"display_name": dn, "url": get_amazon_url(aq)} for _, dn, aq in chunk],
+        })
+    if db_rows:
+        categories.append({
+            "label": "その他・注目ルアー",
+            "items": [{"display_name": r["display_name"], "url": get_amazon_url(r["amazon_query"])} for r in db_rows],
+        })
+
+    total = sum(len(c["items"]) for c in categories)
+    return render_template("tackle.html", categories=categories, total=total)
 
 
 @app.route("/stats")
