@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>フィールド別ヒットルアー図鑑 | バス釣り釣果ダッシュボード</title>
+  <meta name="description" content="霞ヶ浦・琵琶湖・亀山湖など主要フィールド別の攻略パターンとヒットルアーを紹介。アフィリエイトリンクで今すぐ購入可能。">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Helvetica Neue', Arial, "Hiragino Sans", sans-serif;
+      background: #0d1b2a;
+      color: #e0e0e0;
+      font-size: 16px;
+      min-height: 100vh;
+    }
+
+    /* ── ヘッダー ── */
+    header {
+      background: linear-gradient(135deg, #1a3a5c, #0d6b8a);
+      padding: 20px 24px;
+      border-bottom: 3px solid #00b4d8;
+    }
+    header h1 { font-size: 1.3rem; color: #fff; margin-bottom: 6px; }
+    header p { color: #90e0ef; font-size: 0.85rem; }
+    header nav { margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; }
+    header nav a {
+      color: #48cae4;
+      text-decoration: none;
+      font-size: 0.82rem;
+      border: 1px solid #48cae4;
+      border-radius: 20px;
+      padding: 4px 14px;
+      transition: background 0.2s;
+    }
+    header nav a:hover { background: rgba(72,202,228,0.15); }
+
+    main { max-width: 900px; margin: 0 auto; padding: 24px 16px 60px; }
+
+    /* ── ラインリマインダーバナー ── */
+    .line-reminder {
+      background: linear-gradient(135deg, #1a3a5c, #0d5c7a);
+      border: 2px solid #00b4d8;
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 28px;
+    }
+    .line-reminder h3 { font-size: 1rem; color: #48cae4; margin-bottom: 6px; }
+    .line-reminder p { font-size: 0.87rem; color: #caf0f8; margin-bottom: 14px; line-height: 1.6; }
+    .line-products { display: flex; flex-wrap: wrap; gap: 8px; }
+    .line-btn-amz {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #ff9900; color: #111;
+      text-decoration: none; border-radius: 8px;
+      padding: 9px 16px; font-size: 0.85rem; font-weight: 700;
+      transition: background 0.2s;
+    }
+    .line-btn-amz:hover { background: #e68900; }
+    .line-btn-rak {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #bf0000; color: #fff;
+      text-decoration: none; border-radius: 8px;
+      padding: 9px 16px; font-size: 0.85rem; font-weight: 700;
+      transition: background 0.2s;
+    }
+    .line-btn-rak:hover { background: #a00000; }
+
+    /* ── フィールドタブ ── */
+    .field-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .field-tab {
+      background: #1a2f47;
+      border: 2px solid #1e3a5f;
+      color: #90e0ef;
+      border-radius: 24px;
+      padding: 8px 18px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .field-tab:hover { border-color: #00b4d8; color: #fff; }
+    .field-tab.active { background: #0d6b8a; border-color: #00b4d8; color: #fff; }
+
+    /* ── フィールドセクション ── */
+    .field-section { display: none; }
+    .field-section.active { display: block; }
+
+    /* ── パターンカード ── */
+    .pattern-card {
+      background: #132436;
+      border: 1px solid #1e3a5f;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .pattern-header {
+      background: linear-gradient(90deg, #0d4a6b, #0d3a5a);
+      padding: 16px 20px;
+      border-bottom: 1px solid #1e3a5f;
+    }
+    .pattern-name { font-size: 1.05rem; font-weight: 700; color: #48cae4; margin-bottom: 4px; }
+    .pattern-situation {
+      font-size: 0.8rem; color: #90e0ef;
+      background: rgba(0,180,216,0.15);
+      display: inline-block;
+      padding: 2px 10px; border-radius: 20px;
+    }
+    .pattern-body { padding: 18px 20px; }
+    .pattern-desc {
+      font-size: 0.9rem; color: #caf0f8; line-height: 1.7;
+      margin-bottom: 18px;
+      border-left: 3px solid #00b4d8;
+      padding-left: 12px;
+    }
+
+    /* ルアーリスト */
+    .section-label {
+      font-size: 0.75rem; font-weight: 700; color: #90e0ef;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .lure-list { list-style: none; margin-bottom: 18px; }
+    .lure-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #1e3a5f;
+      flex-wrap: wrap;
+    }
+    .lure-item:last-child { border-bottom: none; }
+    .lure-name { font-size: 0.92rem; font-weight: 700; color: #e0e0e0; flex: 1; min-width: 140px; }
+    .lure-note { font-size: 0.78rem; color: #90e0ef; min-width: 80px; }
+    .lure-btns { display: flex; gap: 6px; flex-shrink: 0; }
+    .btn-amz {
+      background: #ff9900; color: #111;
+      text-decoration: none; border-radius: 6px;
+      padding: 7px 14px; font-size: 0.8rem; font-weight: 700;
+      white-space: nowrap; transition: background 0.2s;
+    }
+    .btn-amz:hover { background: #e68900; }
+    .btn-rak {
+      background: #bf0000; color: #fff;
+      text-decoration: none; border-radius: 6px;
+      padding: 7px 14px; font-size: 0.8rem; font-weight: 700;
+      white-space: nowrap; transition: background 0.2s;
+    }
+    .btn-rak:hover { background: #a00000; }
+
+    /* ライン・小物 */
+    .line-box {
+      background: rgba(0,180,216,0.07);
+      border: 1px solid #0d6b8a;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .line-icon { font-size: 1.2rem; }
+    .line-info { flex: 1; }
+    .line-info strong { font-size: 0.9rem; color: #48cae4; display: block; }
+    .line-info span { font-size: 0.78rem; color: #90e0ef; }
+    .accessories-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+    .acc-item {
+      background: #0d3a5a;
+      border: 1px solid #1e3a5f;
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .acc-name { font-size: 0.82rem; color: #caf0f8; }
+
+    /* ── チェックリスト ── */
+    .checklist-section {
+      background: #132436;
+      border: 2px solid #1e3a5f;
+      border-radius: 16px;
+      padding: 22px 20px;
+      margin-top: 36px;
+    }
+    .checklist-title {
+      font-size: 1.05rem; font-weight: 700; color: #48cae4;
+      margin-bottom: 6px;
+    }
+    .checklist-sub { font-size: 0.85rem; color: #90e0ef; margin-bottom: 18px; }
+    .checklist-grid {
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .chk-row {
+      display: flex; align-items: center; gap: 12px;
+      background: #0d1b2a;
+      border: 1px solid #1e3a5f;
+      border-radius: 10px;
+      padding: 12px 14px;
+      flex-wrap: wrap;
+      transition: border-color 0.2s;
+    }
+    .chk-row.checked { border-color: #00b4d8; background: #0a2535; }
+    .chk-checkbox {
+      width: 22px; height: 22px;
+      border: 2px solid #48cae4;
+      border-radius: 4px;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background: #132436;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .chk-checkbox:checked {
+      background: #00b4d8;
+      border-color: #00b4d8;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 6l3 3 5-5' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 14px;
+    }
+    .chk-label { flex: 1; font-size: 0.9rem; color: #e0e0e0; cursor: pointer; }
+    .chk-label.checked-label { text-decoration: line-through; color: #718096; }
+    .chk-warn { font-size: 0.72rem; color: #ff9900; font-weight: 700; }
+    .chk-btns { display: flex; gap: 6px; }
+
+    .checklist-reset {
+      margin-top: 14px;
+      background: transparent;
+      border: 1px solid #718096;
+      color: #718096;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .checklist-reset:hover { border-color: #90e0ef; color: #90e0ef; }
+
+    footer {
+      text-align: center; padding: 24px;
+      font-size: 0.78rem; color: #718096;
+      border-top: 1px solid #1e3a5f;
+      margin-top: 40px;
+    }
+
+    @media (max-width: 600px) {
+      .lure-item { flex-direction: column; align-items: flex-start; }
+      .line-box { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎣 フィールド別 ヒットルアー図鑑</h1>
+    <p>フィールドと状況に合わせた三種の神器（ルアー・ライン・小物）を紹介</p>
+    <nav>
+      <a href="/">🏠 ホーム</a>
+      <a href="/tackle">🛒 タックル一覧</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ラインリマインダーバナー -->
+    <div class="line-reminder">
+      <h3>{{ line_reminder.title }}</h3>
+      <p>{{ line_reminder.desc }}</p>
+      <div class="line-products">
+        {% for p in line_reminder.products %}
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <span style="font-size:0.78rem;color:#90e0ef;">{{ p.name }}</span>
+          <div style="display:flex;gap:6px;">
+            <a class="line-btn-amz" href="{{ p.amazon }}" target="_blank" rel="noopener noreferrer">🛒 Amazon</a>
+            <a class="line-btn-rak" href="{{ p.rakuten }}" target="_blank" rel="noopener noreferrer">🔴 楽天</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- フィールドタブ -->
+    <div class="field-tabs">
+      {% for f in field_guide %}
+      <button class="field-tab {% if loop.first %}active{% endif %}"
+              onclick="switchField('{{ loop.index0 }}', this)">
+        {{ f.emoji }} {{ f.field }}
+      </button>
+      {% endfor %}
+    </div>
+
+    <!-- フィールドコンテンツ -->
+    {% for f in field_guide %}
+    <div class="field-section {% if loop.first %}active{% endif %}" id="field-{{ loop.index0 }}">
+      {% for p in f.patterns %}
+      <div class="pattern-card">
+        <div class="pattern-header">
+          <div class="pattern-name">{{ p.name }}</div>
+          <span class="pattern-situation">📍 {{ p.situation }}</span>
+        </div>
+        <div class="pattern-body">
+          <p class="pattern-desc">{{ p.desc }}</p>
+
+          <!-- ヒットルアー -->
+          <div class="section-label">🎣 実績ヒットルアー TOP3</div>
+          <ul class="lure-list">
+            {% for lure in p.lures %}
+            <li class="lure-item">
+              <span class="lure-name">{{ lure.name }}</span>
+              {% if lure.note %}<span class="lure-note">💡 {{ lure.note }}</span>{% endif %}
+              <div class="lure-btns">
+                <a class="btn-amz" href="{{ lure.amazon }}" target="_blank" rel="noopener noreferrer">🛒 Amazon</a>
+                <a class="btn-rak" href="{{ lure.rakuten }}" target="_blank" rel="noopener noreferrer">🔴 楽天</a>
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+
+          <!-- 推奨ライン -->
+          <div class="section-label">🧵 推奨ライン</div>
+          <div class="line-box">
+            <span class="line-icon">🧵</span>
+            <div class="line-info">
+              <strong>{{ p.line.name }}</strong>
+              <span>{{ p.line.note }}</span>
+            </div>
+            <div class="lure-btns">
+              <a class="btn-amz" href="{{ p.line.amazon }}" target="_blank" rel="noopener noreferrer">🛒 Amazon</a>
+              <a class="btn-rak" href="{{ p.line.rakuten }}" target="_blank" rel="noopener noreferrer">🔴 楽天</a>
+            </div>
+          </div>
+
+          <!-- 消耗品・小物 -->
+          <div class="section-label">🔩 あわせて揃えたい消耗品</div>
+          <div class="accessories-list">
+            {% for acc in p.accessories %}
+            <div class="acc-item">
+              <span class="acc-name">{{ acc.name }}</span>
+              <a class="btn-amz" href="{{ acc.amazon }}" target="_blank" rel="noopener noreferrer" style="font-size:0.75rem;padding:5px 10px;">Amazon</a>
+              <a class="btn-rak" href="{{ acc.rakuten }}" target="_blank" rel="noopener noreferrer" style="font-size:0.75rem;padding:5px 10px;">楽天</a>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+
+    <!-- 忘れ物チェックリスト -->
+    <div class="checklist-section">
+      <div class="checklist-title">✅ 釣行前 忘れ物チェックリスト</div>
+      <div class="checklist-sub">チェックして、足りないものはすぐに購入できます</div>
+      <div class="checklist-grid" id="checklist">
+        {% for item in checklist_items %}
+        <div class="chk-row" id="chkrow-{{ loop.index0 }}">
+          <input type="checkbox" class="chk-checkbox" id="chk-{{ loop.index0 }}"
+                 onchange="toggleCheck({{ loop.index0 }})">
+          <label class="chk-label" for="chk-{{ loop.index0 }}" id="chklabel-{{ loop.index0 }}">
+            {{ item.label }}
+            {% if item.warn %}<span class="chk-warn">⚠ 消耗品・要確認</span>{% endif %}
+          </label>
+          <div class="chk-btns">
+            <a class="btn-amz" href="{{ item.amazon }}" target="_blank" rel="noopener noreferrer" style="font-size:0.75rem;padding:6px 12px;">Amazon</a>
+            <a class="btn-rak" href="{{ item.rakuten }}" target="_blank" rel="noopener noreferrer" style="font-size:0.75rem;padding:6px 12px;">楽天</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <button class="checklist-reset" onclick="resetChecklist()">🔄 チェックをリセット</button>
+    </div>
+  </main>
+
+  <footer>
+    バス釣り釣果ダッシュボード ｜ <a href="/" style="color:#718096;text-decoration:none;">ホーム</a> ｜
+    当サイトはAmazonアソシエイト・楽天アフィリエイトの参加者です
+  </footer>
+
+  <script>
+    function switchField(idx, btn) {
+      document.querySelectorAll(".field-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".field-section").forEach(s => s.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("field-" + idx).classList.add("active");
+    }
+
+    function toggleCheck(idx) {
+      const cb = document.getElementById("chk-" + idx);
+      const row = document.getElementById("chkrow-" + idx);
+      const label = document.getElementById("chklabel-" + idx);
+      if (cb.checked) {
+        row.classList.add("checked");
+        label.classList.add("checked-label");
+      } else {
+        row.classList.remove("checked");
+        label.classList.remove("checked-label");
+      }
+    }
+
+    function resetChecklist() {
+      document.querySelectorAll(".chk-checkbox").forEach((cb, i) => {
+        cb.checked = false;
+        document.getElementById("chkrow-" + i).classList.remove("checked");
+        document.getElementById("chklabel-" + i).classList.remove("checked-label");
+      });
+    }
+  </script>
+</body>
+</html>
