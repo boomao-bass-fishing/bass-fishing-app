@@ -145,9 +145,9 @@
 
     {% for cat in categories %}
     <section class="category-section">
-      <h2>{{ cat.label }}（{{ cat.items | length }}件）</h2>
+      <h2>{{ cat.label }}（{{ cat.products | length }}件）</h2>
       <div class="tackle-grid">
-        {% for item in cat.items %}
+        {% for item in cat.products %}
         <div class="tackle-card">
           <div class="tackle-name">{{ item.display_name }}</div>
           <a class="amazon-btn" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">Amazonで見る</a>

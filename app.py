@@ -795,15 +795,15 @@ def tackle_list():
         chunk = builtin[start:end]
         categories.append({
             "label": label,
-            "items": [{"display_name": dn, "url": get_amazon_url(aq)} for _, dn, aq in chunk],
+            "products": [{"display_name": dn, "url": get_amazon_url(aq)} for _, dn, aq in chunk],
         })
     if db_rows:
         categories.append({
             "label": "その他・注目ルアー",
-            "items": [{"display_name": r["display_name"], "url": get_amazon_url(r["amazon_query"])} for r in db_rows],
+            "products": [{"display_name": r["display_name"], "url": get_amazon_url(r["amazon_query"])} for r in db_rows],
         })
 
-    total = sum(len(c["items"]) for c in categories)
+    total = sum(len(c["products"]) for c in categories)
     return render_template("tackle.html", categories=categories, total=total)
 
 
