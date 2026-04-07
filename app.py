@@ -405,7 +405,7 @@ BOAT_SHOP_RSS = {
 # YouTube は API ユニットを節約するため 6 時間キャッシュ
 # RSS は 30 分キャッシュ
 YOUTUBE_CACHE_TTL = 6 * 60 * 60   # 6時間（秒）
-RSS_CACHE_TTL     = 30 * 60        # 30分（秒）
+RSS_CACHE_TTL     = 2 * 60 * 60    # 2時間（秒）
 TACKLE_CACHE_TTL  = 10 * 60        # 10分（秒）
 
 _youtube_cache: dict = {}   # {"query": {"data": [...], "ts": float}}
