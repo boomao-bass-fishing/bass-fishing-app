@@ -2,13 +2,14 @@ import os
 import json
 import time
 import urllib.parse
+import functools
 import psycopg2
 import psycopg2.extras
 import feedparser
 import requests
 import tweepy
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, Response
 import cloudinary
 import cloudinary.uploader
 
@@ -20,6 +21,21 @@ app = Flask(__name__)
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 TACKLE_API_KEY = os.environ.get("TACKLE_API_KEY", "")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
+
+
+def require_admin(f):
+    @functools.wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not ADMIN_PASSWORD or not auth or auth.password != ADMIN_PASSWORD:
+            return Response(
+                "管理者ページです。IDとパスワードを入力してください。",
+                401,
+                {"WWW-Authenticate": 'Basic realm="Admin"'},
+            )
+        return f(*args, **kwargs)
+    return decorated
 
 cloudinary.config(cloudinary_url=os.environ.get("CLOUDINARY_URL"))
 
@@ -661,6 +677,7 @@ def api_hit_lures():
 
 
 @app.route("/admin/tackle")
+@require_admin
 def admin_tackle():
     """タックル辞書管理ページ"""
     with get_db() as conn:
@@ -673,6 +690,7 @@ def admin_tackle():
 
 
 @app.route("/admin/tackle/add", methods=["POST"])
+@require_admin
 def admin_tackle_add():
     """タックル辞書にエントリを追加"""
     keyword      = request.form.get("keyword", "").strip()
@@ -696,6 +714,7 @@ def admin_tackle_add():
 
 
 @app.route("/admin/tackle/delete/<int:entry_id>", methods=["POST"])
+@require_admin
 def admin_tackle_delete(entry_id):
     """タックル辞書のエントリを削除"""
     with get_db() as conn:
