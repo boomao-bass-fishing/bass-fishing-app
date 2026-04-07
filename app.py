@@ -6,6 +6,7 @@ import psycopg2
 import psycopg2.extras
 import feedparser
 import requests
+import tweepy
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import cloudinary
@@ -161,6 +162,39 @@ TACKLE_DICT = [
     ("エアエッジ",           "エアエッジ",             "ダイワ エアエッジ"),
     ("ファンタジスタ",       "ファンタジスタ",         "アブガルシア ファンタジスタ"),
 ]
+
+
+# ── X (Twitter) API 設定 ────────────────────────────────────────
+X_CONSUMER_KEY        = os.environ.get("X_CONSUMER_KEY")
+X_CONSUMER_SECRET     = os.environ.get("X_CONSUMER_SECRET")
+X_ACCESS_TOKEN        = os.environ.get("X_ACCESS_TOKEN")
+X_ACCESS_TOKEN_SECRET = os.environ.get("X_ACCESS_TOKEN_SECRET")
+
+
+def get_x_client():
+    """tweepy v2 クライアントを返す"""
+    if not all([X_CONSUMER_KEY, X_CONSUMER_SECRET, X_ACCESS_TOKEN, X_ACCESS_TOKEN_SECRET]):
+        return None
+    return tweepy.Client(
+        consumer_key=X_CONSUMER_KEY,
+        consumer_secret=X_CONSUMER_SECRET,
+        access_token=X_ACCESS_TOKEN,
+        access_token_secret=X_ACCESS_TOKEN_SECRET,
+    )
+
+
+def post_to_x(text):
+    """Xにツイートを投稿する。成功したらTrueを返す"""
+    try:
+        client = get_x_client()
+        if client is None:
+            print("X API credentials not set")
+            return False
+        client.create_tweet(text=text)
+        return True
+    except Exception as e:
+        print(f"X post error: {e}")
+        return False
 
 
 AMAZON_ASSOCIATE_TAG = "booma01-22"
@@ -541,6 +575,33 @@ def post_catch():
                     photo_url,
                 ),
             )
+
+        # ── X (Twitter) への自動投稿 ────────────────────
+        try:
+            parts = [f"🎣【釣果情報】{field_name}"]
+            if fishing_date:
+                parts.append(f"📅 {fishing_date}")
+            if count:
+                parts.append(f"釣果: {count}本")
+            if size_cm:
+                parts.append(f"最大: {size_cm}cm")
+            if lure:
+                parts.append(f"ルアー: {lure}")
+            if weather:
+                parts.append(f"天気: {weather}")
+            if comment:
+                # コメントは50文字まで
+                parts.append(comment[:50])
+            parts.append("#バス釣り #バスフィッシング")
+            parts.append("https://bass-fishing-app-1.onrender.com/")
+            tweet_text = "\n".join(parts)
+            # X は280文字制限
+            if len(tweet_text) > 280:
+                tweet_text = tweet_text[:277] + "..."
+            post_to_x(tweet_text)
+        except Exception as e:
+            print(f"Tweet error: {e}")
+
     return redirect(url_for("index"))
 
 
@@ -569,6 +630,26 @@ def api_fields():
 def api_hit_lures():
     """今週のヒットルアーランキングをJSONで返す"""
     return jsonify(get_hit_lures())
+
+
+@app.route("/api/tweet-hit-lures", methods=["POST"])
+def api_tweet_hit_lures():
+    """今週のヒットルアーランキングをXに投稿する"""
+    ranking = get_hit_lures(top_n=5)
+    if not ranking:
+        return jsonify({"ok": False, "message": "ランキングデータなし"}), 400
+
+    lines = ["🎣今週のバス釣りヒットルアーTOP5"]
+    for i, item in enumerate(ranking, 1):
+        lines.append(f"{i}位 {item['name']}（{item['count']}件）")
+    lines.append("#バス釣り #バスフィッシング")
+    lines.append("https://bass-fishing-app-1.onrender.com/")
+    tweet_text = "\n".join(lines)
+    if len(tweet_text) > 280:
+        tweet_text = tweet_text[:277] + "..."
+
+    ok = post_to_x(tweet_text)
+    return jsonify({"ok": ok, "tweet": tweet_text})
 
 
 @app.route("/stats")
