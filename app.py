@@ -543,7 +543,13 @@ def fetch_rss(shop_name, rss_url, website=None, max_items=5):
         return cached["data"]
 
     try:
-        feed = feedparser.parse(rss_url)
+        try:
+            resp = requests.get(rss_url, timeout=5,
+                                headers={"User-Agent": "Mozilla/5.0"})
+            resp.raise_for_status()
+            feed = feedparser.parse(resp.content)
+        except Exception:
+            feed = feedparser.parse(rss_url)
         items = []
         for entry in feed.entries[:max_items]:
             published = ""
@@ -951,13 +957,29 @@ def stats():
 
 @app.route("/")
 def index():
+    today = datetime.now().strftime("%Y-%m-%d")
     with get_db() as conn:
         catches = conn.execute(
             "SELECT * FROM catches ORDER BY posted_at DESC LIMIT 50"
         ).fetchall()
-
-    record_visit()  # 訪問数をカウント
-    visit_stats = get_visit_stats()
+        # 訪問数カウント＋統計を1コネクションで処理
+        conn.execute("""
+            INSERT INTO page_views (date, count) VALUES (?, 1)
+            ON CONFLICT(date) DO UPDATE SET count = page_views.count + 1
+        """, (today,))
+        total = conn.execute("SELECT COALESCE(SUM(count), 0) AS total FROM page_views").fetchone()["total"]
+        today_row = conn.execute(
+            "SELECT COALESCE(count, 0) AS cnt FROM page_views WHERE date = ?", (today,)
+        ).fetchone()
+        today_count = today_row["cnt"] if today_row else 0
+        last7 = conn.execute(
+            "SELECT date, count FROM page_views ORDER BY date DESC LIMIT 7"
+        ).fetchall()
+    visit_stats = {
+        "total": total,
+        "today": today_count,
+        "last7": [{"date": r["date"], "count": r["count"]} for r in last7],
+    }
 
     # 初回ロード時はYouTube APIを呼ばない（クォータ節約）
     # 動画はタブクリック時に /api/field/<name> で遅延取得
