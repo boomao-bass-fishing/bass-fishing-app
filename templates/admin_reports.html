@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>釣果レポート管理</title>
+  <style>
+    body { font-family: sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
+    h1 { color: #1a5276; border-bottom: 3px solid #1a5276; padding-bottom: 8px; }
+    .card { background: #fff; border-radius: 8px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+    label { display: block; font-weight: bold; margin: 12px 0 4px; color: #333; }
+    select, input[type=text], input[type=date], textarea {
+      width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px;
+      font-size: 14px; box-sizing: border-box;
+    }
+    textarea { height: 180px; resize: vertical; font-family: monospace; }
+    .btn-submit { background: #1a5276; color: #fff; border: none; padding: 12px 32px;
+      border-radius: 6px; font-size: 16px; cursor: pointer; margin-top: 16px; }
+    .btn-submit:hover { background: #154360; }
+    .btn-delete { background: #e74c3c; color: #fff; border: none; padding: 4px 12px;
+      border-radius: 4px; font-size: 12px; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #eee; font-size: 13px; }
+    th { background: #eaf0fb; }
+    .hint { font-size: 12px; color: #888; margin: 4px 0 0; }
+    .nav { margin-bottom: 16px; }
+    .nav a { color: #1a5276; text-decoration: none; margin-right: 16px; }
+  </style>
+</head>
+<body>
+  <div class="nav"><a href="/">← トップへ戻る</a><a href="/reports">公開レポートページを見る</a></div>
+  <h1>🎣 釣果レポート管理</h1>
+
+  <!-- 投稿フォーム -->
+  <div class="card">
+    <h2>新規レポートを投稿</h2>
+    <p class="hint">NotebookLMで生成したレポートをそのまま貼り付けてください。ルアー名・タックル名は自動的にアフィリエイトリンクになります。</p>
+    <form method="POST" action="/admin/reports/post">
+      <label>フィールド名 <span style="color:red">*</span></label>
+      <select name="field_name" required>
+        <option value="">選択してください</option>
+        {% for f in fields %}
+        <option value="{{ f }}">{{ f }}</option>
+        {% endfor %}
+      </select>
+
+      <label>ボート屋名 <span style="color:red">*</span></label>
+      <input type="text" name="shop_name" placeholder="例: ともゑ釣り船" required>
+
+      <label>レポート対象日 <span style="color:red">*</span></label>
+      <input type="date" name="report_date" required>
+
+      <label>釣果まとめ（NotebookLMの表・箇条書きをそのまま貼り付け）<span style="color:red">*</span></label>
+      <textarea name="summary" placeholder="例:
+【釣果まとめ】
+・川島様: 4匹 25〜38cm 寺下・夢の島 DPミノー108SP
+・フルヤ様: 6匹 30〜38cm 鯨島・宿原 ブレーバー5.7
+..." required></textarea>
+
+      <label>パターン分析（NotebookLMの分析レポートを貼り付け）</label>
+      <textarea name="analysis" placeholder="例:
+【4月6日 高気温・晴天時のパターン解析】
+今回の安定した晴天条件はバスにとってシャローへのコンタクトを促進する..."></textarea>
+
+      <button type="submit" class="btn-submit">投稿する</button>
+    </form>
+  </div>
+
+  <!-- 投稿済み一覧 -->
+  <div class="card">
+    <h2>投稿済みレポート（直近20件）</h2>
+    {% if reports %}
+    <table>
+      <tr><th>日付</th><th>フィールド</th><th>ボート屋</th><th>操作</th></tr>
+      {% for r in reports %}
+      <tr>
+        <td>{{ r.report_date }}</td>
+        <td>{{ r.field_name }}</td>
+        <td>{{ r.shop_name }}</td>
+        <td>
+          <form method="POST" action="/admin/reports/delete/{{ r.id }}"
+                onsubmit="return confirm('このレポートを削除しますか？')">
+            <button type="submit" class="btn-delete">削除</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <p style="color:#888">まだレポートがありません。</p>
+    {% endif %}
+  </div>
+</body>
+</html>

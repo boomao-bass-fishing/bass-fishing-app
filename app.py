@@ -124,6 +124,18 @@ def init_db():
                 created_at   TEXT NOT NULL
             )
         """)
+        # 釣果レポート（NotebookLM編集済みコンテンツ）
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS fishing_reports (
+                id          SERIAL PRIMARY KEY,
+                field_name  TEXT NOT NULL,
+                shop_name   TEXT NOT NULL,
+                report_date TEXT NOT NULL,
+                summary     TEXT NOT NULL,
+                analysis    TEXT,
+                posted_at   TEXT NOT NULL
+            )
+        """)
 
 
 init_db()
@@ -1755,6 +1767,123 @@ def field_guide():
                            field_guide=FIELD_GUIDE,
                            checklist_items=CHECKLIST_ITEMS,
                            line_reminder=LINE_REMINDER)
+
+
+# ── 釣果レポート（NotebookLM連携） ────────────────────────────────────────
+
+def insert_affiliate_links(text: str) -> str:
+    """テキスト内のルアー・タックル名をAmazon/楽天アフィリエイトリンクに変換する"""
+    if not text:
+        return text
+    import re as _re
+    full_dict = get_full_tackle_dict()
+    # 長いキーワード優先でソート（部分マッチを防ぐ）
+    full_dict_sorted = sorted(full_dict, key=lambda x: len(x[0]), reverse=True)
+    replaced = set()
+    for keyword, display_name, amazon_query in full_dict_sorted:
+        if keyword in replaced:
+            continue
+        amazon_url  = get_amazon_url(amazon_query)
+        rakuten_url = get_rakuten_url(amazon_query)
+        link_html = (
+            f'<span class="affiliate-word">{keyword}'
+            f'<span class="affiliate-links">'
+            f'<a href="{amazon_url}" target="_blank" rel="nofollow noopener" class="btn-amazon">Amazon</a>'
+            f'<a href="{rakuten_url}" target="_blank" rel="nofollow noopener" class="btn-rakuten">楽天</a>'
+            f'</span></span>'
+        )
+        # すでにリンク化済みのキーワードは再置換しない
+        text = _re.sub(
+            r'(?<!affiliate-word">)(?<!/)' + _re.escape(keyword),
+            link_html,
+            text,
+            count=1
+        )
+        replaced.add(keyword)
+    return text
+
+
+@app.route("/reports")
+def fishing_reports():
+    """釣果レポート一覧ページ"""
+    field_filter = request.args.get("field", "")
+    try:
+        with get_db() as conn:
+            if field_filter:
+                rows = conn.execute(
+                    "SELECT * FROM fishing_reports WHERE field_name = ? ORDER BY report_date DESC",
+                    (field_filter,)
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT * FROM fishing_reports ORDER BY report_date DESC"
+                ).fetchall()
+    except Exception:
+        rows = []
+
+    # 各レポートのsummary/analysisにアフィリエイトリンクを挿入
+    reports = []
+    for r in rows:
+        reports.append({
+            "id":          r["id"],
+            "field_name":  r["field_name"],
+            "shop_name":   r["shop_name"],
+            "report_date": r["report_date"],
+            "summary":     insert_affiliate_links(r["summary"]),
+            "analysis":    insert_affiliate_links(r["analysis"] or ""),
+            "posted_at":   r["posted_at"],
+        })
+
+    return render_template(
+        "fishing_reports.html",
+        reports=reports,
+        field_filter=field_filter,
+        fields=FIELDS,
+    )
+
+
+@app.route("/admin/reports")
+@require_admin
+def admin_reports():
+    """釣果レポート管理ページ（NotebookLM出力の貼り付け）"""
+    with get_db() as conn:
+        rows = conn.execute(
+            "SELECT id, field_name, shop_name, report_date FROM fishing_reports ORDER BY report_date DESC LIMIT 20"
+        ).fetchall()
+    return render_template("admin_reports.html", reports=rows, fields=FIELDS)
+
+
+@app.route("/admin/reports/post", methods=["POST"])
+@require_admin
+def admin_reports_post():
+    """釣果レポートを保存する"""
+    field_name  = request.form.get("field_name", "").strip()
+    shop_name   = request.form.get("shop_name", "").strip()
+    report_date = request.form.get("report_date", "").strip()
+    summary     = request.form.get("summary", "").strip()
+    analysis    = request.form.get("analysis", "").strip()
+
+    if not (field_name and shop_name and report_date and summary):
+        return "必須項目が不足しています", 400
+
+    posted_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with get_db() as conn:
+        conn.execute(
+            """INSERT INTO fishing_reports
+               (field_name, shop_name, report_date, summary, analysis, posted_at)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (field_name, shop_name, report_date, summary, analysis, posted_at)
+        )
+    return redirect("/admin/reports")
+
+
+@app.route("/admin/reports/delete/<int:report_id>", methods=["POST"])
+@require_admin
+def admin_reports_delete(report_id):
+    """釣果レポートを削除する"""
+    with get_db() as conn:
+        conn.execute("DELETE FROM fishing_reports WHERE id = ?", (report_id,))
+    return redirect("/admin/reports")
 
 
 if __name__ == "__main__":

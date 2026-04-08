@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>釣果レポート | バス釣り釣果ダッシュボード</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Hiragino Sans', sans-serif; background: #0d1b2a; color: #e8f4f8; min-height: 100vh; }
+
+    /* ヘッダー */
+    .header { background: linear-gradient(135deg, #1a3a5c, #0d1b2a); padding: 16px 20px;
+      display: flex; align-items: center; gap: 12px; border-bottom: 2px solid #2980b9; }
+    .header a { color: #7fb3d3; text-decoration: none; font-size: 14px; }
+    .header h1 { color: #fff; font-size: 20px; }
+
+    /* フィルター */
+    .filter-bar { background: #1a2f44; padding: 12px 20px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .filter-bar a { padding: 6px 14px; border-radius: 20px; font-size: 13px; text-decoration: none;
+      background: #243b55; color: #adc8e0; border: 1px solid #2c4a6e; transition: all .2s; }
+    .filter-bar a.active, .filter-bar a:hover { background: #2980b9; color: #fff; border-color: #2980b9; }
+
+    /* レポートカード */
+    .reports-container { max-width: 860px; margin: 24px auto; padding: 0 16px; }
+    .report-card { background: #1a2f44; border-radius: 12px; margin-bottom: 28px;
+      border: 1px solid #2c4a6e; overflow: hidden; }
+    .report-header { background: linear-gradient(135deg, #1c3d5a, #243b55);
+      padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 8px; }
+    .report-header .field { font-size: 18px; font-weight: bold; color: #5dade2; }
+    .report-header .shop  { font-size: 14px; color: #adc8e0; }
+    .report-header .date  { font-size: 13px; color: #7f8c8d; }
+    .report-body { padding: 20px; }
+
+    /* セクション */
+    .section-title { font-size: 15px; font-weight: bold; color: #f39c12;
+      margin: 0 0 10px; padding-bottom: 6px; border-bottom: 1px solid #2c4a6e; }
+    .summary-text, .analysis-text {
+      font-size: 14px; line-height: 1.8; color: #cdd9e5;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .analysis-section { margin-top: 20px; background: #162435; border-radius: 8px; padding: 16px; }
+
+    /* アフィリエイトリンク */
+    .affiliate-word { position: relative; display: inline-block; }
+    .affiliate-word { color: #5dade2; font-weight: bold; cursor: pointer;
+      border-bottom: 1px dashed #5dade2; }
+    .affiliate-links { display: none; position: absolute; top: 100%; left: 0; z-index: 100;
+      background: #1a2f44; border: 1px solid #2980b9; border-radius: 8px;
+      padding: 8px; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,.4); }
+    .affiliate-word:hover .affiliate-links { display: flex; gap: 8px; }
+    .btn-amazon  { background: #ff9900; color: #000; padding: 4px 12px; border-radius: 4px;
+      text-decoration: none; font-size: 12px; font-weight: bold; }
+    .btn-rakuten { background: #bf0000; color: #fff; padding: 4px 12px; border-radius: 4px;
+      text-decoration: none; font-size: 12px; font-weight: bold; }
+    .btn-amazon:hover  { background: #e68900; }
+    .btn-rakuten:hover { background: #990000; }
+
+    /* 購入リンクバナー */
+    .buy-banner { margin-top: 16px; padding: 12px 16px; background: #162435;
+      border-radius: 8px; border-left: 3px solid #f39c12; font-size: 13px; color: #adc8e0; }
+    .buy-banner strong { color: #f39c12; }
+
+    /* 空状態 */
+    .empty { text-align: center; padding: 60px 20px; color: #7f8c8d; }
+    .empty .icon { font-size: 48px; margin-bottom: 12px; }
+
+    /* レスポンシブ */
+    @media (max-width: 600px) {
+      .report-header { flex-direction: column; align-items: flex-start; }
+      .affiliate-links { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+        top: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <a href="/">← トップ</a>
+    <h1>🎣 釣果レポート</h1>
+    <span style="font-size:12px; color:#7f8c8d; margin-left:auto">
+      ルアー名をタップするとAmazon・楽天で購入できます
+    </span>
+  </div>
+
+  <!-- フィールドフィルター -->
+  <div class="filter-bar">
+    <a href="/reports" class="{{ 'active' if not field_filter }}">すべて</a>
+    {% for f in fields %}
+    <a href="/reports?field={{ f }}" class="{{ 'active' if field_filter == f }}">{{ f }}</a>
+    {% endfor %}
+  </div>
+
+  <div class="reports-container">
+    {% if reports %}
+      {% for r in reports %}
+      <div class="report-card">
+        <div class="report-header">
+          <div>
+            <div class="field">📍 {{ r.field_name }}</div>
+            <div class="shop">🚤 {{ r.shop_name }}</div>
+          </div>
+          <div class="date">📅 {{ r.report_date }}</div>
+        </div>
+        <div class="report-body">
+
+          <!-- 釣果まとめ -->
+          <div class="section-title">📋 釣果まとめ</div>
+          <div class="summary-text">{{ r.summary | safe }}</div>
+
+          <!-- パターン分析 -->
+          {% if r.analysis %}
+          <div class="analysis-section">
+            <div class="section-title">🔍 パターン分析</div>
+            <div class="analysis-text">{{ r.analysis | safe }}</div>
+          </div>
+          {% endif %}
+
+          <!-- 購入リンク案内 -->
+          <div class="buy-banner">
+            <strong>💡 ヒントルアーを探す</strong>
+            上のレポート内の<strong style="color:#5dade2">青文字のルアー名</strong>をタップすると Amazon・楽天で購入できます。
+          </div>
+
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty">
+        <div class="icon">🎣</div>
+        <p>まだレポートがありません。</p>
+        {% if field_filter %}
+        <p><a href="/reports" style="color:#5dade2">すべてのレポートを見る</a></p>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+</body>
+</html>
