@@ -1051,18 +1051,28 @@ def stats():
     return render_template("stats.html", **data)
 
 
+@app.route("/ping")
+def ping():
+    """UptimeRobot用ヘルスチェックエンドポイント（訪問数カウントしない）"""
+    return "OK", 200
+
+
 @app.route("/")
 def index():
     today = datetime.now().strftime("%Y-%m-%d")
+    # UptimeRobot や監視ボットはカウントしない
+    ua = request.headers.get("User-Agent", "")
+    is_bot = any(bot in ua for bot in ["UptimeRobot", "uptimerobot", "bot", "Bot", "crawler", "monitor"])
     with get_db() as conn:
         catches = conn.execute(
             "SELECT * FROM catches ORDER BY posted_at DESC LIMIT 50"
         ).fetchall()
-        # 訪問数カウント＋統計を1コネクションで処理
-        conn.execute("""
-            INSERT INTO page_views (date, count) VALUES (?, 1)
-            ON CONFLICT(date) DO UPDATE SET count = page_views.count + 1
-        """, (today,))
+        # 訪問数カウント＋統計を1コネクションで処理（ボット除外）
+        if not is_bot:
+            conn.execute("""
+                INSERT INTO page_views (date, count) VALUES (?, 1)
+                ON CONFLICT(date) DO UPDATE SET count = page_views.count + 1
+            """, (today,))
         total = conn.execute("SELECT COALESCE(SUM(count), 0) AS total FROM page_views").fetchone()["total"]
         today_row = conn.execute(
             "SELECT COALESCE(count, 0) AS cnt FROM page_views WHERE date = ?", (today,)
