@@ -1,7 +1,7 @@
 # バス釣り釣果ダッシュボード - プロジェクト概要
 
 ## アプリURL
-- **本番**: https://bass-fishing-app.onrender.com
+- **本番**: https://bass-fishing-app-1.onrender.com
 - **GitHub**: https://github.com/boomao-bass-fishing/bass-fishing-app
 
 ## 使用サービス一覧
@@ -82,3 +82,34 @@ git push origin main
 - フィールドの追加（候補: 相模湖、津久井湖、山中湖など）
 - 釣果データのグラフ表示
 - 長期的にはSQLiteをPostgreSQLに移行（データ永続化強化）
+
+## 自動釣果リンク収集システム（2026年4月追加）
+
+### 概要
+ボート屋の釣果ページURLを週1回自動収集し、GoogleスプレッドシートへCI書き込み。
+ユーザーがNotebookLMにURLを貼り付けてAIレポートを手動生成する運用。
+
+### ファイル
+- **収集スクリプト**: `scripts/collect_fishing_info.py`
+- **ワークフロー**: `.github/workflows/weekly_fishing_info.yml`
+
+### スケジュール
+- 毎週月曜 AM 10:00 JST（cron: `0 1 * * 1`）
+- GitHub Actionsページから手動実行も可能
+
+### 出力先
+- **スプレッドシート**: https://docs.google.com/spreadsheets/d/1pmyjsiVcPj1fIOBHr20d5RDjSgRb_56IWqvUCgiBarQ/
+- **シート名**: 釣果リンク（NotebookLM用）
+- **カラム**: 収集日、優先度、フィールド、ボート屋名、釣果タイトル、釣果URL、投稿日
+
+### Google Cloud 認証
+- **サービスアカウント**: bass-fishing-sheets@crypto-lexicon-491922-p0.iam.gserviceaccount.com
+- **GitHub Secret**: `GOOGLE_SERVICE_ACCOUNT_JSON`（登録済み）
+
+### 収集対象ボート屋（優先度順）
+- 【最優先】霞ヶ浦: のむらボート、KANKO他 / 琵琶湖: MoreMarine他
+- 【高】亀山湖: 亀山ボートハウス他 / 相模湖: 小川亭（Cloudflareにより自動収集不可）
+- 【特定】河口湖: さかなや他（ワーム禁止フィールド）
+
+### 手動実行方法
+GitHub → Actions → 週次ボート屋釣果リンク収集 → Run workflow

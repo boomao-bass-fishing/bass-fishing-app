@@ -1,0 +1,31 @@
+name: 週次ボート屋釣果リンク収集
+
+on:
+  schedule:
+    # 毎週月曜 AM 10:00 JST (UTC 01:00)
+    - cron: '0 1 * * 1'
+  workflow_dispatch:
+    # GitHub画面から手動実行も可能
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Python セットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 依存ライブラリをインストール
+        run: |
+          pip install requests gspread google-auth feedparser
+
+      - name: ボート屋釣果リンクを収集してスプレッドシートに書き込み
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          python scripts/collect_fishing_info.py
