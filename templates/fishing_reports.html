@@ -87,7 +87,8 @@
   <div class="filter-bar">
     <a href="/reports" class="{{ 'active' if not field_filter }}">すべて</a>
     {% for f in fields %}
-    <a href="/reports?field={{ f }}" class="{{ 'active' if field_filter == f }}">{{ f }}</a>
+    {% set fname = f.replace(' バス釣り', '') %}
+    <a href="/reports?field={{ fname }}" class="{{ 'active' if field_filter == fname }}">{{ fname }}</a>
     {% endfor %}
   </div>
 
