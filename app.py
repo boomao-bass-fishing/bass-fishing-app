@@ -70,14 +70,19 @@ class PgConn:
 
 
 def get_db():
-    conn = psycopg2.connect(
-        host=os.environ.get("DB_HOST"),
-        port=int(os.environ.get("DB_PORT", "5432")),
-        dbname=os.environ.get("DB_NAME", "postgres"),
-        user=os.environ.get("DB_USER"),
-        password=os.environ.get("DB_PASSWORD"),
-        sslmode='require'
-    )
+    database_url = os.environ.get("DATABASE_URL")
+    if database_url:
+        # Render provides DATABASE_URL; prefer it over individual vars
+        conn = psycopg2.connect(database_url, sslmode='require')
+    else:
+        conn = psycopg2.connect(
+            host=os.environ.get("DB_HOST"),
+            port=int(os.environ.get("DB_PORT", "5432")),
+            dbname=os.environ.get("DB_NAME", "postgres"),
+            user=os.environ.get("DB_USER"),
+            password=os.environ.get("DB_PASSWORD"),
+            sslmode='require'
+        )
     return PgConn(conn)
 
 
