@@ -346,7 +346,10 @@ SPとは「サスペンド」の略で、水中で静止（浮きも沈みもし
         )
 
 
-init_db()
+try:
+    init_db()
+except Exception as e:
+    print(f"[init_db] WARNING: {e}", flush=True)
 
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 YOUTUBE_SEARCH_URL = "https://www.googleapis.com/youtube/v3/search"
