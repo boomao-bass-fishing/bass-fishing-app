@@ -53,6 +53,98 @@
       color: #0d1b2a;
     }
 
+    header nav a.nav-report {
+      background: linear-gradient(135deg, #f39c12, #e74c3c);
+      color: #fff;
+      border: none;
+      font-weight: bold;
+      font-size: 0.9rem;
+      padding: 6px 20px;
+      box-shadow: 0 0 12px rgba(243,156,18,0.6);
+      animation: pulse-nav 2s ease-in-out infinite;
+    }
+
+    header nav a.nav-report:hover {
+      background: linear-gradient(135deg, #e67e22, #c0392b);
+      color: #fff;
+      box-shadow: 0 0 20px rgba(243,156,18,0.9);
+    }
+
+    @keyframes pulse-nav {
+      0%, 100% { box-shadow: 0 0 10px rgba(243,156,18,0.5); }
+      50%       { box-shadow: 0 0 22px rgba(243,156,18,0.95); }
+    }
+
+    .report-promo {
+      background: linear-gradient(135deg, #1c3a1c, #1a3a5c);
+      border: 2px solid #f39c12;
+      border-radius: 14px;
+      padding: 24px 28px;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      box-shadow: 0 0 20px rgba(243,156,18,0.2);
+    }
+
+    .report-promo-icon {
+      font-size: 3rem;
+      flex-shrink: 0;
+    }
+
+    .report-promo-body {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .report-promo-body h2 {
+      font-size: 1.2rem;
+      color: #f39c12;
+      margin-bottom: 6px;
+    }
+
+    .report-promo-body p {
+      font-size: 0.88rem;
+      color: #adc8e0;
+      line-height: 1.6;
+    }
+
+    .report-promo-body .fields-tag {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .report-promo-body .fields-tag span {
+      background: #243b55;
+      color: #7fb3d3;
+      font-size: 0.75rem;
+      padding: 2px 10px;
+      border-radius: 12px;
+      border: 1px solid #2c4a6e;
+    }
+
+    .report-promo-btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #f39c12, #e74c3c);
+      color: #fff;
+      font-weight: bold;
+      font-size: 1rem;
+      padding: 12px 28px;
+      border-radius: 30px;
+      text-decoration: none;
+      white-space: nowrap;
+      box-shadow: 0 4px 14px rgba(243,156,18,0.5);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .report-promo-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(243,156,18,0.8);
+    }
+
     main {
       max-width: 1400px;
       margin: 0 auto;
@@ -607,11 +699,28 @@
     <nav>
       <a href="/tackle">🛒 おすすめタックル一覧</a>
       <a href="/field-guide">🎣 フィールド別ルアー図鑑</a>
-      <a href="/reports">📊 AI釣果レポート</a>
+      <a href="/reports" class="nav-report">🔥 AI釣果レポート NEW</a>
     </nav>
   </header>
 
   <main>
+    <!-- AI釣果レポート プロモバナー -->
+    <div class="report-promo">
+      <div class="report-promo-icon">🤖</div>
+      <div class="report-promo-body">
+        <h2>📊 AI釣果レポート — 最新パターン分析</h2>
+        <p>ボート屋の釣果情報をAIが徹底分析。<strong style="color:#f1c40f">「今どこで・何で・なぜ釣れるのか」</strong>をデータで解説。おすすめルアーをそのままAmazon・楽天で購入できます。</p>
+        <div class="fields-tag">
+          <span>🌊 霞ヶ浦</span>
+          <span>🏔 河口湖</span>
+          <span>🌲 亀山湖</span>
+          <span>🎋 三島湖</span>
+          <span>順次追加予定</span>
+        </div>
+      </div>
+      <a href="/reports" class="report-promo-btn">レポートを見る →</a>
+    </div>
+
     <!-- サービス紹介 -->
     <section class="about-banner">
       <p>🎣 <strong>バス釣りをされる方へ</strong> — 全国のバス釣りフィールド情報を一元化したWebサービスです。</p>
