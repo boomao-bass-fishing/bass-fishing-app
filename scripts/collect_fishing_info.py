@@ -143,6 +143,81 @@ RSS_SHOPS = [
         "url":      "https://rssblog.ameba.jp/boat-motoyoshi/rss.html",
         "note":     "継続収集",
     },
+    # ━━ 桧原湖（東北の人気リザーバー・スモールマウス） ━━
+    {
+        "priority": "★★ 追加",
+        "name":     "いつもの処ふじもと",
+        "field":    "桧原湖",
+        "url":      "https://hibarako.com/feed/",
+        "note":     "桧原湖ボート屋・スモールマウス情報",
+    },
+    {
+        "priority": "★★ 追加",
+        "name":     "バックス（BACSS）",
+        "field":    "桧原湖",
+        "url":      "https://bacss.jp/feed/",
+        "note":     "桧原湖バス釣り情報",
+    },
+
+    # ━━ 野尻湖（長野・スモールマウス） ━━
+    {
+        "priority": "★★ 追加",
+        "name":     "花屋ボート",
+        "field":    "野尻湖",
+        "url":      "https://hanayaboat.com/feed/",
+        "note":     "野尻湖ボート屋",
+    },
+    {
+        "priority": "★★ 追加",
+        "name":     "野尻湖Freee",
+        "field":    "野尻湖",
+        "url":      "https://nojiri-freee.com/feed/",
+        "note":     "野尻湖ガイド・フィッシング情報",
+    },
+
+    # ━━ 七色ダム（三重・巨大バス） ━━
+    {
+        "priority": "★★ 追加",
+        "name":     "バッシングロード",
+        "field":    "七色ダム",
+        "url":      "https://bassingroad.com/feed/",
+        "note":     "七色ダムボート屋・釣果情報",
+    },
+
+    # ━━ 遠賀川（九州・おかっぱり聖地） ━━
+    {
+        "priority": "★★ 追加",
+        "name":     "ロッドマン",
+        "field":    "遠賀川",
+        "url":      "https://www.rod-man.jp/feed/",
+        "note":     "遠賀川周辺釣具店・釣果情報",
+    },
+    {
+        "priority": "★★ 追加",
+        "name":     "LA10lb",
+        "field":    "遠賀川",
+        "url":      "http://la10lb.com/feed/",
+        "note":     "遠賀川ガイド情報",
+    },
+
+    # ━━ 浜名湖（静岡・ブラックバス＋海水魚） ━━
+    {
+        "priority": "★★ 追加",
+        "name":     "ジョナサン",
+        "field":    "浜名湖",
+        "url":      "http://www.jona-3.com/feed/",
+        "note":     "浜名湖ボート屋・釣果情報",
+    },
+
+    # ━━ 牛久沼（茨城・霞ヶ浦近隣） ━━
+    {
+        "priority": "★★ 追加",
+        "name":     "たまやボート",
+        "field":    "牛久沼",
+        "url":      "http://www.tamayaboat.com/feed/",
+        "note":     "牛久沼ボート屋",
+    },
+
     # ※相模湖・小川亭はCloudflare保護のため自動収集不可
     # 手動確認URL: https://www.ogawatei.info/釣果情報-1/
 ]
@@ -166,6 +241,33 @@ SCRAPE_SHOPS = [
         "url":          "",          # 月別URLは動的生成（下記 scrape_moremarine で対応）
         "link_pattern": r"https://reserver\.co\.jp/choka/detail/\d+",
         "note":         "琵琶湖最大級・ビッグベイト・ヘビキャロ高単価",
+    },
+    # ── 高滝湖：高滝湖観光企業組合 ──
+    {
+        "priority":     "★★ 追加",
+        "name":         "高滝湖観光企業組合",
+        "field":        "高滝湖",
+        "url":          "https://www.takatakiko.jp/fishing/",
+        "link_pattern": r"https://www\.takatakiko\.jp/fishing/\d{4}/\d+",
+        "note":         "高滝湖釣果情報ページ",
+    },
+    # ── 池原ダム：トボトスロープ ──
+    {
+        "priority":     "★★ 追加",
+        "name":         "トボトスロープ",
+        "field":        "池原ダム",
+        "url":          "http://www.toboto.or.jp/fishing/",
+        "link_pattern": r"http://www\.toboto\.or\.jp/fishing/.+",
+        "note":         "池原ダム・七色ダム周辺情報",
+    },
+    # ── 野尻湖マリーナ ──
+    {
+        "priority":     "★★ 追加",
+        "name":         "野尻湖マリーナ",
+        "field":        "野尻湖",
+        "url":          "https://www.nojiriko.jp/fishing/",
+        "link_pattern": r"https://www\.nojiriko\.jp/fishing/.+",
+        "note":         "野尻湖マリーナ釣果情報",
     },
 ]
 
