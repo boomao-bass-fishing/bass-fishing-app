@@ -119,6 +119,10 @@ def init_db():
                 count INTEGER NOT NULL DEFAULT 0
             )
         """)
+        # スキーママイグレーション: 既存テーブルにUNIQUE制約がない場合のフォールバック
+        conn.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_page_views_date ON page_views(date)
+        """)
         # ユーザー追加タックル辞書
         conn.execute("""
             CREATE TABLE IF NOT EXISTS tackle_dict (
@@ -1224,29 +1228,34 @@ def index():
     # UptimeRobot や監視ボットはカウントしない
     ua = request.headers.get("User-Agent", "")
     is_bot = any(bot in ua for bot in ["UptimeRobot", "uptimerobot", "bot", "Bot", "crawler", "monitor"])
-    with get_db() as conn:
-        catches = conn.execute(
-            "SELECT * FROM catches ORDER BY posted_at DESC LIMIT 50"
-        ).fetchall()
-        # 訪問数カウント＋統計を1コネクションで処理（ボット除外）
-        if not is_bot:
-            conn.execute("""
-                INSERT INTO page_views (date, count) VALUES (?, 1)
-                ON CONFLICT(date) DO UPDATE SET count = page_views.count + 1
-            """, (today,))
-        total = conn.execute("SELECT COALESCE(SUM(count), 0) AS total FROM page_views").fetchone()["total"]
-        today_row = conn.execute(
-            "SELECT COALESCE(count, 0) AS cnt FROM page_views WHERE date = ?", (today,)
-        ).fetchone()
-        today_count = today_row["cnt"] if today_row else 0
-        last7 = conn.execute(
-            "SELECT date, count FROM page_views ORDER BY date DESC LIMIT 7"
-        ).fetchall()
-    visit_stats = {
-        "total": total,
-        "today": today_count,
-        "last7": [{"date": r["date"], "count": r["count"]} for r in last7],
-    }
+    catches = []
+    visit_stats = {"total": 0, "today": 0, "last7": []}
+    try:
+        with get_db() as conn:
+            catches = conn.execute(
+                "SELECT * FROM catches ORDER BY posted_at DESC LIMIT 50"
+            ).fetchall()
+            # 訪問数カウント＋統計を1コネクションで処理（ボット除外）
+            if not is_bot:
+                conn.execute("""
+                    INSERT INTO page_views (date, count) VALUES (?, 1)
+                    ON CONFLICT(date) DO UPDATE SET count = page_views.count + 1
+                """, (today,))
+            total = conn.execute("SELECT COALESCE(SUM(count), 0) AS total FROM page_views").fetchone()["total"]
+            today_row = conn.execute(
+                "SELECT COALESCE(count, 0) AS cnt FROM page_views WHERE date = ?", (today,)
+            ).fetchone()
+            today_count = today_row["cnt"] if today_row else 0
+            last7 = conn.execute(
+                "SELECT date, count FROM page_views ORDER BY date DESC LIMIT 7"
+            ).fetchall()
+            visit_stats = {
+                "total": total,
+                "today": today_count,
+                "last7": [{"date": r["date"], "count": r["count"]} for r in last7],
+            }
+    except Exception as e:
+        print(f"[index] DB error: {e}")
 
     # 初回ロード時はYouTube APIを呼ばない（クォータ節約）
     # 動画はタブクリック時に /api/field/<name> で遅延取得
