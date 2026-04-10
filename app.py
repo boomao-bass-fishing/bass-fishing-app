@@ -1271,7 +1271,7 @@ def index():
     try:
         with get_db() as conn:
             rows = conn.execute(
-                "SELECT * FROM fishing_reports ORDER BY rowid DESC"
+                "SELECT * FROM fishing_reports ORDER BY id DESC"
             ).fetchall()
             for r in rows:
                 reports.append({
