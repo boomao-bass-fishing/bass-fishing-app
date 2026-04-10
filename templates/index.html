@@ -595,6 +595,69 @@
       padding: 12px 0;
     }
 
+    /* ② 速報セクション */
+    .sokuhо-section {
+      background: linear-gradient(135deg, #1c2e1c, #1a2f44);
+      border: 2px solid #f39c12;
+      border-radius: 14px;
+      margin-bottom: 28px;
+      overflow: hidden;
+      box-shadow: 0 0 18px rgba(243,156,18,0.15);
+    }
+    .sokuho-header {
+      background: linear-gradient(90deg, #1e3a1e, #1c3a5c);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      border-bottom: 1px solid #f39c12;
+    }
+    .sokuho-badge {
+      background: linear-gradient(135deg, #f39c12, #e74c3c);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 3px 10px;
+      border-radius: 12px;
+      white-space: nowrap;
+      animation: pulse-nav 2s ease-in-out infinite;
+    }
+    .sokuho-header h2 {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #f1c40f;
+      margin: 0;
+    }
+    .sokuho-field {
+      font-size: 0.8rem;
+      color: #adc8e0;
+      margin-left: auto;
+    }
+    .sokuho-body {
+      padding: 16px 20px;
+    }
+    .sokuho-text {
+      font-size: 13px;
+      line-height: 1.8;
+      color: #cdd9e5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-bottom: 14px;
+    }
+    .sokuho-more-btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #f39c12, #e74c3c);
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.85rem;
+      padding: 8px 20px;
+      border-radius: 20px;
+      text-decoration: none;
+      transition: opacity .2s;
+    }
+    .sokuho-more-btn:hover { opacity: 0.85; }
+
     /* AI釣果レポートセクション（トップページ埋め込み） */
     .reports-section { margin-bottom: 40px; }
     .reports-section h2 {
@@ -771,47 +834,47 @@
   </header>
 
   <main>
-    <!-- サービス紹介 -->
-    <section class="about-banner">
-      <p>🎣 <strong>バス釣りをされる方へ</strong> — 全国のバス釣りフィールド情報を一元化したWebサービスです。</p>
-      <ul>
-        <li>✅ 各フィールドのボート屋様の最新釣果情報</li>
-        <li>✅ フィールド別YouTube動画</li>
-        <li>✅ アングラーの皆様の釣果投稿</li>
-        <li>✅ AIによる釣果パターン分析レポート（下記参照）</li>
-      </ul>
-      <p>釣行前の情報収集にぜひご活用ください。また釣果情報の投稿もお待ちしております！<br>
-      <span class="free-label">✨ 無料でご利用いただけます</span></p>
+
+    <!-- ① フィールド選択タブ -->
+    <section class="field-selector">
+      <h2>📍 フィールドを選ぶ</h2>
+      <div class="field-tabs">
+        {% for field in field_data %}
+        <button class="field-tab-btn{% if loop.first %} active{% endif %}"
+                onclick="selectField('{{ field.name }}', this)">
+          {{ field.name }}
+        </button>
+        {% endfor %}
+      </div>
     </section>
 
-    <!-- AI釣果レポート -->
+    <!-- ② 【速報】AI分析による今週の正解パターン（最新1件） -->
     {% if reports %}
-    <section class="reports-section">
-      <h2>🤖 AI釣果レポート <span style="font-size:0.75rem; color:#adc8e0; font-weight:normal;">— ルアー名をタップするとAmazon・楽天で購入できます</span></h2>
-      <div class="reports-grid">
-        {% for r in reports %}
-        <div class="report-card">
-          <div class="report-card-header">
-            <span class="rc-field">📍 {{ r.field_name }}</span>
-            <span class="rc-date">📅 {{ r.report_date }}</span>
-          </div>
-          <div class="report-card-body">
-            <div class="rc-summary">{{ r.summary | safe }}</div>
-            {% if r.analysis %}
-            <div class="rc-analysis-wrap">
-              <div class="rc-analysis-title">🔍 パターン分析</div>
-              <div class="rc-analysis" id="analysis-{{ r.id }}">{{ r.analysis | safe }}</div>
-              <button class="rc-toggle-btn" onclick="toggleAnalysis('analysis-{{ r.id }}', this)">▼ 詳細を見る</button>
-            </div>
-            {% endif %}
-          </div>
-        </div>
-        {% endfor %}
+    {% set r = reports[0] %}
+    <section class="sokuhо-section">
+      <div class="sokuho-header">
+        <span class="sokuho-badge">⚡ 速報</span>
+        <h2>AI分析による今週の正解パターン</h2>
+        <span class="sokuho-field">📍 {{ r.field_name }} ／ 📅 {{ r.report_date }}</span>
+      </div>
+      <div class="sokuho-body">
+        <div class="sokuho-text">{{ r.summary | safe }}</div>
+        <a href="/reports" class="sokuho-more-btn">全フィールドのレポートを見る →</a>
       </div>
     </section>
     {% endif %}
 
-    <!-- 釣果投稿フォーム -->
+    <!-- ③ 注目のアイテム（アフィリエイト） -->
+    <div class="hit-lures-section" id="hit-lures-section">
+      <div class="hit-lures-title">🛒 注目のアイテム — 今週のヒットルアー <span style="font-size:0.75rem; font-weight:normal; color:#adc8e0;">タップでAmazon・楽天へ</span></div>
+      <div class="hit-lures-list" id="hit-lures-list">
+        <span style="color:#5b93a8;font-size:0.85rem;">読み込み中...</span>
+      </div>
+    </div>
+
+    <!-- ④ 新着フィールドレポート一覧（下に続くfield-section） -->
+
+    <!-- 釣果投稿フォーム（下部へ移動） -->
     <section class="catch-post-section">
       <h2>🐟 釣果を投稿する</h2>
       <form class="catch-form" method="POST" action="/post_catch" enctype="multipart/form-data">
@@ -951,27 +1014,6 @@
       <p class="catch-empty">まだ釣果の投稿がありません。最初の釣果を投稿してみましょう！</p>
       {% endif %}
     </section>
-
-    <!-- フィールド選択タブ -->
-    <section class="field-selector">
-      <h2>📍 フィールドを選ぶ</h2>
-      <div class="field-tabs">
-        {% for field in field_data %}
-        <button class="field-tab-btn{% if loop.first %} active{% endif %}"
-                onclick="selectField('{{ field.name }}', this)">
-          {{ field.name }}
-        </button>
-        {% endfor %}
-      </div>
-    </section>
-
-    <!-- 今週のヒットルアー -->
-    <div class="hit-lures-section" id="hit-lures-section">
-      <div class="hit-lures-title">🎣 今週のヒットルアー（RSS集計）</div>
-      <div class="hit-lures-list" id="hit-lures-list">
-        <span style="color:#5b93a8;font-size:0.85rem;">読み込み中...</span>
-      </div>
-    </div>
 
     {% for field in field_data %}
     <section class="field-section{% if loop.first %} active{% endif %}" data-field="{{ field.name }}" data-loaded="false">
