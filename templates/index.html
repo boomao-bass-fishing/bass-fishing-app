@@ -595,6 +595,73 @@
       padding: 12px 0;
     }
 
+    /* AI釣果レポートセクション（トップページ埋め込み） */
+    .reports-section { margin-bottom: 40px; }
+    .reports-section h2 {
+      font-size: 1.3rem; font-weight: bold; color: #f39c12;
+      margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+      border-left: 5px solid #f39c12; padding-left: 12px;
+    }
+    .reports-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 20px;
+    }
+    .report-card {
+      background: #1a2f44; border-radius: 12px;
+      border: 1px solid #2c4a6e; overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .report-card-header {
+      background: linear-gradient(135deg, #1c3d5a, #243b55);
+      padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .report-card-header .rc-field { font-size: 16px; font-weight: bold; color: #5dade2; }
+    .report-card-header .rc-date  { font-size: 12px; color: #7f8c8d; }
+    .report-card-body { padding: 16px; flex: 1; }
+    .rc-summary {
+      font-size: 13px; line-height: 1.75; color: #cdd9e5;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .rc-analysis-wrap {
+      margin-top: 12px; background: #162435; border-radius: 8px; padding: 14px;
+    }
+    .rc-analysis-title {
+      font-size: 12px; font-weight: bold; color: #f39c12; margin-bottom: 8px;
+    }
+    .rc-analysis {
+      font-size: 12px; line-height: 1.7; color: #adc8e0;
+      white-space: pre-wrap; word-break: break-word;
+      max-height: 220px; overflow: hidden; position: relative;
+    }
+    .rc-analysis.expanded { max-height: none; }
+    .rc-analysis::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+      height: 48px;
+      background: linear-gradient(transparent, #162435);
+      pointer-events: none;
+    }
+    .rc-analysis.expanded::after { display: none; }
+    .rc-toggle-btn {
+      margin-top: 8px; background: none; border: 1px solid #2c4a6e;
+      color: #5dade2; font-size: 12px; border-radius: 6px;
+      padding: 4px 12px; cursor: pointer; width: 100%; transition: background .2s;
+    }
+    .rc-toggle-btn:hover { background: #243b55; }
+    .affiliate-word { position: relative; display: inline-block;
+      color: #5dade2; font-weight: bold; cursor: pointer;
+      border-bottom: 1px dashed #5dade2; }
+    .affiliate-links { display: none; position: absolute; top: 100%; left: 0; z-index: 100;
+      background: #1a2f44; border: 1px solid #2980b9; border-radius: 8px;
+      padding: 8px; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,.4); }
+    .affiliate-word:hover .affiliate-links { display: flex; gap: 8px; }
+    .btn-amazon  { background: #ff9900; color: #000; padding: 4px 12px; border-radius: 4px;
+      text-decoration: none; font-size: 12px; font-weight: bold; }
+    .btn-rakuten { background: #bf0000; color: #fff; padding: 4px 12px; border-radius: 4px;
+      text-decoration: none; font-size: 12px; font-weight: bold; }
+    .btn-amazon:hover  { background: #e68900; }
+    .btn-rakuten:hover { background: #990000; }
+
     /* サービス紹介バナー */
     .about-banner {
       background: linear-gradient(135deg, #0d2f47, #0d3d57);
@@ -704,23 +771,6 @@
   </header>
 
   <main>
-    <!-- AI釣果レポート プロモバナー -->
-    <div class="report-promo">
-      <div class="report-promo-icon">🤖</div>
-      <div class="report-promo-body">
-        <h2>📊 AI釣果レポート — 最新パターン分析</h2>
-        <p>ボート屋の釣果情報をAIが徹底分析。<strong style="color:#f1c40f">「今どこで・何で・なぜ釣れるのか」</strong>をデータで解説。おすすめルアーをそのままAmazon・楽天で購入できます。</p>
-        <div class="fields-tag">
-          <span>🌊 霞ヶ浦</span>
-          <span>🏔 河口湖</span>
-          <span>🌲 亀山湖</span>
-          <span>🎋 三島湖</span>
-          <span>順次追加予定</span>
-        </div>
-      </div>
-      <a href="/reports" class="report-promo-btn">レポートを見る →</a>
-    </div>
-
     <!-- サービス紹介 -->
     <section class="about-banner">
       <p>🎣 <strong>バス釣りをされる方へ</strong> — 全国のバス釣りフィールド情報を一元化したWebサービスです。</p>
@@ -728,11 +778,38 @@
         <li>✅ 各フィールドのボート屋様の最新釣果情報</li>
         <li>✅ フィールド別YouTube動画</li>
         <li>✅ アングラーの皆様の釣果投稿</li>
-        <li>🔥 <strong style="color:#f1c40f">NEW：AIが釣果情報を分析し「今釣れるパターン」を解説！おすすめルアーをAmazon・楽天でそのまま購入可</strong> → <a href="/reports" style="color:#f39c12; font-weight:bold; text-decoration:underline;">AI釣果レポートを見る</a></li>
+        <li>✅ AIによる釣果パターン分析レポート（下記参照）</li>
       </ul>
       <p>釣行前の情報収集にぜひご活用ください。また釣果情報の投稿もお待ちしております！<br>
       <span class="free-label">✨ 無料でご利用いただけます</span></p>
     </section>
+
+    <!-- AI釣果レポート -->
+    {% if reports %}
+    <section class="reports-section">
+      <h2>🤖 AI釣果レポート <span style="font-size:0.75rem; color:#adc8e0; font-weight:normal;">— ルアー名をタップするとAmazon・楽天で購入できます</span></h2>
+      <div class="reports-grid">
+        {% for r in reports %}
+        <div class="report-card">
+          <div class="report-card-header">
+            <span class="rc-field">📍 {{ r.field_name }}</span>
+            <span class="rc-date">📅 {{ r.report_date }}</span>
+          </div>
+          <div class="report-card-body">
+            <div class="rc-summary">{{ r.summary | safe }}</div>
+            {% if r.analysis %}
+            <div class="rc-analysis-wrap">
+              <div class="rc-analysis-title">🔍 パターン分析</div>
+              <div class="rc-analysis" id="analysis-{{ r.id }}">{{ r.analysis | safe }}</div>
+              <button class="rc-toggle-btn" onclick="toggleAnalysis('analysis-{{ r.id }}', this)">▼ 詳細を見る</button>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
 
     <!-- 釣果投稿フォーム -->
     <section class="catch-post-section">
@@ -973,6 +1050,18 @@
         ).join('');
     });
   });
+
+  // ── AI釣果レポート 詳細展開 ────────────────────────────
+  function toggleAnalysis(id, btn) {
+    const el = document.getElementById(id);
+    if (el.classList.contains('expanded')) {
+      el.classList.remove('expanded');
+      btn.textContent = '▼ 詳細を見る';
+    } else {
+      el.classList.add('expanded');
+      btn.textContent = '▲ 閉じる';
+    }
+  }
 
   // ── フィールド選択タブ（動画の遅延読み込み付き）────────────────────────────
   async function selectField(fieldName, btn) {

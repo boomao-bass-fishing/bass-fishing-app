@@ -1266,8 +1266,29 @@ def index():
          for kw, dn, aq in get_full_tackle_dict()],
         ensure_ascii=False
     )
+    # AI釣果レポートをトップページに表示
+    reports = []
+    try:
+        with get_db() as conn:
+            rows = conn.execute(
+                "SELECT * FROM fishing_reports ORDER BY rowid DESC"
+            ).fetchall()
+            for r in rows:
+                reports.append({
+                    "id":          r["id"],
+                    "field_name":  r["field_name"],
+                    "shop_name":   r["shop_name"],
+                    "report_date": r["report_date"],
+                    "summary":     insert_affiliate_links(r["summary"]),
+                    "analysis":    insert_affiliate_links(r["analysis"] or ""),
+                    "posted_at":   r["posted_at"],
+                })
+    except Exception as e:
+        print(f"[index] reports error: {e}")
+
     return render_template("index.html", field_data=field_data, catches=catches,
-                           visit_stats=visit_stats, tackle_js=tackle_js)
+                           visit_stats=visit_stats, tackle_js=tackle_js,
+                           reports=reports)
 
 
 # ══════════════════════════════════════════════════════
