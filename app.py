@@ -2354,5 +2354,16 @@ def admin_reports_delete(report_id):
     return redirect("/admin/reports")
 
 
+@app.route("/admin/reseed")
+@require_admin
+def admin_reseed():
+    """シードレポートを強制的に再挿入する"""
+    try:
+        init_db()
+        return "<h2>✅ シード完了！レポートを再挿入しました。</h2><a href='/reports'>レポートを確認する</a>"
+    except Exception as e:
+        return f"<h2>❌ エラー: {e}</h2>", 500
+
+
 if __name__ == "__main__":
     app.run(debug=True)
