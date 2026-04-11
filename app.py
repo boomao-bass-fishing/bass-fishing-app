@@ -2239,12 +2239,12 @@ def field_guide():
 
 # ── 釣果レポート（NotebookLM連携） ────────────────────────────────────────
 
-def insert_affiliate_links(text: str) -> str:
+def insert_affiliate_links(text: str, preloaded_dict=None) -> str:
     """テキスト内のルアー・タックル名をAmazon/楽天アフィリエイトリンクに変換する"""
     if not text:
         return text
     import re as _re
-    full_dict = get_full_tackle_dict()
+    full_dict = preloaded_dict if preloaded_dict is not None else get_full_tackle_dict()
     # 長いキーワード優先でソート（部分マッチを防ぐ）
     full_dict_sorted = sorted(full_dict, key=lambda x: len(x[0]), reverse=True)
     replaced = set()
@@ -2289,6 +2289,9 @@ def fishing_reports():
     except Exception:
         rows = []
 
+    # タックル辞書を1回だけ取得（パフォーマンス改善）
+    tackle_dict = get_full_tackle_dict()
+
     # 各レポートのsummary/analysisにアフィリエイトリンクを挿入
     reports = []
     for r in rows:
@@ -2297,8 +2300,8 @@ def fishing_reports():
             "field_name":  r["field_name"],
             "shop_name":   r["shop_name"],
             "report_date": r["report_date"],
-            "summary":     insert_affiliate_links(r["summary"]),
-            "analysis":    insert_affiliate_links(r["analysis"] or ""),
+            "summary":     insert_affiliate_links(r["summary"], tackle_dict),
+            "analysis":    insert_affiliate_links(r["analysis"] or "", tackle_dict),
             "posted_at":   r["posted_at"],
         })
 
