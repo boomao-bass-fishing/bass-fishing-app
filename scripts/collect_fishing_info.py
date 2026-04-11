@@ -218,62 +218,28 @@ RSS_SHOPS = [
         "note":     "牛久沼ボート屋",
     },
 
-    # ━━ 神流湖（群馬・秘境リザーバー） ━━
-    {
-        "priority": "★★ 追加",
-        "name":     "神流湖観光ボート（KKB）",
-        "field":    "神流湖",
-        "url":      "https://reserver.co.jp/shop/kkb/feed/",
-        "note":     "神流湖ボート屋",
-    },
-
-    # ━━ 豊英湖（千葉・房総リザーバー） ━━
-    {
-        "priority": "★★ 追加",
-        "name":     "豊英湖釣り舟センター",
-        "field":    "豊英湖",
-        "url":      "http://www.bassinheaven.com/feed/",
-        "note":     "豊英湖ボート屋",
-    },
-
-    # ━━ 利根川（関東・おかっぱり聖地） ━━
-    {
-        "priority": "★★ 追加",
-        "name":     "利根川バス釣り情報",
-        "field":    "利根川",
-        "url":      "https://bassfishing-tonegawa.com/feed/",
-        "note":     "利根川バス釣り情報ブログ",
-    },
-
-    # ━━ 五三川・大江川（岐阜・野池天国） ━━
-    {
-        "priority": "★★ 追加",
-        "name":     "五三川・大江川釣果情報",
-        "field":    "五三川",
-        "url":      "https://gosangawa-bass.com/feed/",
-        "note":     "五三川バス釣り情報",
-    },
-
     # ※相模湖・小川亭はCloudflare保護のため自動収集不可
     # 手動確認URL: https://www.ogawatei.info/釣果情報-1/
 ]
 
-# 自動収集できないフィールドの公式サイトURL（NotebookLM手動追加用）
+# 自動収集できないフィールドの公式サイトURL（NotebookLM手動追加用・存在確認済み）
 STATIC_SITES = [
-    {"priority": "手動追加", "field": "相模湖",  "name": "相模湖小川亭",         "url": "https://www.ogawatei.info/釣果情報-1/"},
-    {"priority": "手動追加", "field": "相模湖",  "name": "天野屋ボート",          "url": "https://amanoya-boat.com/"},
-    {"priority": "手動追加", "field": "相模湖",  "name": "石倉ボート",            "url": "https://ishikura-boat.com/"},
-    {"priority": "手動追加", "field": "池原ダム","name": "ワールドレコード池原",  "url": "https://wrikehara.ocnk.me/"},
-    {"priority": "手動追加", "field": "池原ダム","name": "池原七色ガイドサービス","url": "http://www.ikehara-nanairo-guid.com/"},
-    {"priority": "手動追加", "field": "野尻湖",  "name": "野尻湖マリーナ",        "url": "https://www.nojiriko.jp/"},
-    {"priority": "手動追加", "field": "野尻湖",  "name": "坂本屋",                "url": "http://www.sakamoto-ya.com/rentalboat/"},
-    {"priority": "手動追加", "field": "高滝湖",  "name": "高滝湖観光企業組合",    "url": "https://www.takatakiko.jp/"},
-    {"priority": "手動追加", "field": "河口湖",  "name": "ボートハウスハワイ",    "url": "http://www.kawaguchiko.ne.jp/~hawaii/"},
-    {"priority": "手動追加", "field": "河口湖",  "name": "国友ボート",            "url": "http://www.lcnet.jp/~tom-58/"},
-    {"priority": "手動追加", "field": "荒川",    "name": "荒川バス釣り情報",      "url": "https://bass-arakawa.com/"},
-    {"priority": "手動追加", "field": "大江川",  "name": "大江川バス釣り情報",    "url": "https://oegawa-bass.com/"},
-    {"priority": "手動追加", "field": "牛久沼",  "name": "牛久沼観光ボート",      "url": "https://ushikunuma-boat.com/"},
-    {"priority": "手動追加", "field": "七色ダム","name": "バッシングロード公式",  "url": "https://bassingroad.com/category/fishing-report/"},
+    # 相模湖：Cloudflare保護のためRSS不可、公式サイトのみ
+    {"priority": "手動追加", "field": "相模湖",  "name": "相模湖プレジャーフォレスト", "url": "https://www.sagamiko-resort.jp/"},
+    # 池原ダム
+    {"priority": "手動追加", "field": "池原ダム","name": "トボトスロープ",         "url": "http://www.toboto.or.jp/"},
+    {"priority": "手動追加", "field": "池原ダム","name": "ワールドレコード池原",   "url": "https://wrikehara.ocnk.me/"},
+    # 野尻湖
+    {"priority": "手動追加", "field": "野尻湖",  "name": "野尻湖マリーナ",         "url": "https://www.nojiriko.jp/"},
+    # 高滝湖
+    {"priority": "手動追加", "field": "高滝湖",  "name": "高滝湖観光企業組合",     "url": "https://www.takatakiko.jp/"},
+    # 七色ダム
+    {"priority": "手動追加", "field": "七色ダム","name": "バッシングロード",        "url": "https://bassingroad.com/category/fishing-report/"},
+    # 神流湖
+    {"priority": "手動追加", "field": "神流湖",  "name": "神流湖観光ボート（KKB）", "url": "https://reserver.co.jp/shop/kkb/"},
+    # 豊英湖
+    {"priority": "手動追加", "field": "豊英湖",  "name": "豊英湖釣り舟センター",   "url": "http://www.bassinheaven.com/"},
+    # 荒川・利根川・五三川・大江川・牛久沼はRSSなし・公式サイト不明のため省略
 ]
 
 # 釣果専用ページ（スクレイピング）
