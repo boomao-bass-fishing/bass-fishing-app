@@ -61,12 +61,22 @@ class PgConn:
         return self
 
     def __exit__(self, exc_type, *args):
-        if exc_type:
-            self._conn.rollback()
-        else:
-            self._conn.commit()
-        self._cur.close()
-        self._conn.close()
+        try:
+            if exc_type:
+                self._conn.rollback()
+            else:
+                self._conn.commit()
+        except Exception:
+            pass
+        finally:
+            try:
+                self._cur.close()
+            except Exception:
+                pass
+            try:
+                self._conn.close()
+            except Exception:
+                pass
 
 
 def get_db():
@@ -710,8 +720,13 @@ def make_product(display_name, amazon_query):
     }
 
 
+_tackle_dict_cache = None
+
 def get_full_tackle_dict():
-    """コードのTACKLE_DICT ＋ DBのユーザー追加分をマージして返す"""
+    """コードのTACKLE_DICT ＋ DBのユーザー追加分をマージして返す（キャッシュあり）"""
+    global _tackle_dict_cache
+    if _tackle_dict_cache is not None:
+        return _tackle_dict_cache
     merged = list(TACKLE_DICT)
     try:
         with get_db() as conn:
@@ -722,6 +737,7 @@ def get_full_tackle_dict():
                 merged.append((row["keyword"], row["display_name"], row["amazon_query"]))
     except Exception:
         pass
+    _tackle_dict_cache = merged
     return merged
 
 
