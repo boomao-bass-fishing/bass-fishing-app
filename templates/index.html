@@ -848,20 +848,32 @@
       </div>
     </section>
 
-    <!-- ② 【速報】AI分析による今週の正解パターン（最新1件） -->
+    <!-- ② 【速報】AI分析による今週の正解パターン（フィールド連動） -->
     {% if reports %}
     {% set r = reports[0] %}
-    <section class="sokuhо-section">
+    <section class="sokuhо-section" id="sokuho-section">
       <div class="sokuho-header">
         <span class="sokuho-badge">⚡ 速報</span>
         <h2>AI分析による今週の正解パターン</h2>
-        <span class="sokuho-field">📍 {{ r.field_name }} ／ 📅 {{ r.report_date }}</span>
+        <span class="sokuho-field" id="sokuho-field">📍 {{ r.field_name }} ／ 📅 {{ r.report_date }}</span>
       </div>
       <div class="sokuho-body">
-        <div class="sokuho-text">{{ r.summary | safe }}</div>
+        <div class="sokuho-text" id="sokuho-text">{{ r.summary | safe }}</div>
         <a href="/reports" class="sokuho-more-btn">全フィールドのレポートを見る →</a>
       </div>
     </section>
+
+    <!-- レポートデータをJSに渡す -->
+    <script>
+    const REPORTS_BY_FIELD = {};
+    {% for rep in reports %}
+    REPORTS_BY_FIELD[{{ rep.field_name | tojson }}] = {
+      field_name: {{ rep.field_name | tojson }},
+      report_date: {{ rep.report_date | tojson }},
+      summary: {{ rep.summary | tojson }}
+    };
+    {% endfor %}
+    </script>
     {% endif %}
 
     <!-- ③ 注目のアイテム（アフィリエイト） -->
@@ -1110,6 +1122,23 @@
     // タブボタンのactive切り替え
     document.querySelectorAll('.field-tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+
+    // 速報セクションをフィールドに合わせて更新
+    if (typeof REPORTS_BY_FIELD !== 'undefined') {
+      const sokuhoSection = document.getElementById('sokuho-section');
+      const sokuhoField = document.getElementById('sokuho-field');
+      const sokuhoText = document.getElementById('sokuho-text');
+      if (sokuhoSection && sokuhoField && sokuhoText) {
+        const rep = REPORTS_BY_FIELD[fieldName];
+        if (rep) {
+          sokuhoField.textContent = '📍 ' + rep.field_name + ' ／ 📅 ' + rep.report_date;
+          sokuhoText.innerHTML = rep.summary;
+          sokuhoSection.style.display = '';
+        } else {
+          sokuhoSection.style.display = 'none';
+        }
+      }
+    }
 
     // フィールドセクションの表示切り替え
     document.querySelectorAll('.field-section').forEach(sec => {
