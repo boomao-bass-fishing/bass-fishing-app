@@ -383,21 +383,35 @@ def scrape_moremarine(max_items: int = 10) -> list[dict]:
 # Google Sheets
 # ──────────────────────────────────────────
 def get_worksheet() -> gspread.Worksheet:
-    """スプレッドシートのシートを取得（なければ作成）"""
+    """スプレッドシートの月別シートを取得（なければ作成）"""
     service_account_info = json.loads(os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"])
     creds = Credentials.from_service_account_info(service_account_info, scopes=SCOPES)
     gc    = gspread.authorize(creds)
     sh    = gc.open_by_key(SPREADSHEET_ID)
 
+    # 月別シート名（例: "2026年4月"）
+    now = datetime.now(JST)
+    sheet_name = f"{now.year}年{now.month}月"
+
     try:
-        ws = sh.worksheet("釣果リンク（NotebookLM用）")
+        ws = sh.worksheet(sheet_name)
     except gspread.WorksheetNotFound:
-        ws = sh.add_worksheet(title="釣果リンク（NotebookLM用）", rows=2000, cols=8)
+        ws = sh.add_worksheet(title=sheet_name, rows=2000, cols=8)
 
     if not ws.row_values(1):
         ws.append_row(CATCH_HEADERS, value_input_option="RAW")
 
     return ws
+
+
+def get_existing_urls(ws: gspread.Worksheet) -> set:
+    """シート内の既存URLセットを返す（重複防止用）"""
+    try:
+        all_values = ws.get_all_values()
+        url_col = 5  # 釣果URL列（0始まり）
+        return {row[url_col] for row in all_values[1:] if len(row) > url_col and row[url_col]}
+    except Exception:
+        return set()
 
 
 # ──────────────────────────────────────────
@@ -449,8 +463,10 @@ def main():
         ])
         print(f"  [{site['priority']}] {site['field']} - {site['name']}")
 
-    # スプレッドシートに書き込み
+    # スプレッドシートに書き込み（重複URLはスキップ）
     ws = get_worksheet()
+    existing_urls = get_existing_urls(ws)
+    rows = [r for r in rows if r[5] not in existing_urls]
     if rows:
         ws.append_rows(rows, value_input_option="RAW")
         print(f"\n完了: {len(rows)}件の釣果リンクをスプレッドシートに書き込みました")
